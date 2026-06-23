@@ -3,6 +3,16 @@ import express from "express";
 const app = express();
 const PORT = 3000;
 
+const tasks = [
+  { id: 1, title: "Learn HTTP basics", completed: false },
+  { id: 2, title: "Practice Express routes", completed: false },
+  {
+    id: 3,
+    title: "Connect backend concepts to frontend apps",
+    completed: true,
+  },
+];
+
 app.get("/", (req, res) => {
   res.send("Phase 4 Backend API is running");
 });
@@ -22,17 +32,35 @@ app.get("/api/info", (req, res) => {
 });
 
 app.get("/api/tasks", (req, res) => {
-  res.json({
-    tasks: [
-      { id: 1, title: "Learn HTTP basics", completed: false },
-      { id: 2, title: "Practice Express routes", completed: false },
-      {
-        id: 3,
-        title: "Connect backend concepts to frontend apps",
-        completed: false,
-      },
-    ],
-  });
+  const { completed, search } = req.query;
+
+  let filteredTasks = tasks;
+
+  if (completed === "true") {
+    filteredTasks = filteredTasks.filter((task) => task.completed === true);
+  }
+
+  if (completed === "false") {
+    filteredTasks = filteredTasks.filter((task) => task.completed === false);
+  }
+
+  if (search) {
+    filteredTasks = filteredTasks.filter((task) =>
+      task.title.toLowerCase().includes(search.toLowerCase()),
+    );
+  }
+  res.json({ task: filteredTasks });
+});
+
+app.get("/api/tasks/:id", (req, res) => {
+  const id = Number(req.params.id);
+
+  const task = tasks.find((task) => task.id === id);
+
+  if (!task) {
+    return res.status(404).json({ error: "Task not found." });
+  }
+  res.json({ task });
 });
 
 app.listen(PORT, () => {
