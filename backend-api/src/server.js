@@ -3,6 +3,8 @@ import express from "express";
 const app = express();
 const PORT = 3000;
 
+app.use(express.json());
+
 const tasks = [
   { id: 1, title: "Learn HTTP basics", completed: false },
   { id: 2, title: "Practice Express routes", completed: false },
@@ -49,7 +51,7 @@ app.get("/api/tasks", (req, res) => {
       task.title.toLowerCase().includes(search.toLowerCase()),
     );
   }
-  res.json({ task: filteredTasks });
+  res.json({ tasks: filteredTasks });
 });
 
 app.get("/api/tasks/:id", (req, res) => {
@@ -63,6 +65,28 @@ app.get("/api/tasks/:id", (req, res) => {
   res.json({ task });
 });
 
+app.post("/api/tasks", (req, res) => {
+  const { title } = req.body;
+
+  if (!title || title.trim() === "") {
+    return res.status(400).json({ error: "Title is required" });
+  }
+
+  const newTask = {
+    id: tasks.length + 1,
+    title: title.trim(),
+    completed: false,
+  };
+
+  tasks.push(newTask);
+
+  res.status(201).json({ task: newTask });
+});
+
+
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+

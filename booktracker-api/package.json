@@ -1,0 +1,25 @@
+{
+  "name": "booktracker-api",
+  "version": "1.0.0",
+  "description": "Backend API for book tracker app",
+  "keywords": [
+    "book",
+    "tracker",
+    "api",
+    "backend"
+  ],
+  "license": "ISC",
+  "author": "Grace Akpan",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "nodemon src/server.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
