@@ -208,7 +208,33 @@ app.post("/api/books", (req, res) => {
   } = req.body;
 
   if (!title || title.trim() == "") {
-    return res.status(404).json({ error: "Book not found." });
+    return res.status(404).json({ error: "Title is required." });
+  }
+
+  if (!author || author.trim() == "") {
+    return res.status(404).json({ error: "Author is required." });
+  }
+
+  if (!publicationYear || !Number(publicationYear)) {
+    return res
+      .status(404)
+      .json({ error: "Number is required and must be numeric." });
+  }
+
+  if (!format || format.trim() == "") {
+    return res.status(404).json({ error: "Format is required." });
+  }
+
+  if (!genre || genre.trim() == "") {
+    return res.status(404).json({ error: "Genre is required." });
+  }
+
+  if (!audience || audience.trim() == "") {
+    return res.status(404).json({ error: "Audience is required." });
+  }
+
+  if (!availability || availability.trim() == "") {
+    return res.status(404).json({ error: "Availability is required." });
   }
 
   const newBook = {

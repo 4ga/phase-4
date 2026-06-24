@@ -83,10 +83,6 @@ app.post("/api/tasks", (req, res) => {
   res.status(201).json({ task: newTask });
 });
 
-
-
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
-
-
