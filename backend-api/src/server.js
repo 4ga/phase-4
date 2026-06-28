@@ -83,6 +83,40 @@ app.post("/api/tasks", (req, res) => {
   res.status(201).json({ task: newTask });
 });
 
+app.patch("/api/tasks/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const { title, completed } = req.body;
+
+  const task = tasks.find((task) => task.id === id);
+
+  if (!task) {
+    return res.status(404).json({ error: "Task not found" });
+  }
+
+  if (title !== undefined && title.trim() === "") {
+    return res.status(400).json({
+      error: "Title cannot be empty",
+    });
+  }
+
+  if (completed !== undefined && typeof completed !== "boolean") {
+    return res.status(404).json({ error: "Completed must be a boolean" });
+  }
+
+  if (title === undefined && completed === undefined) {
+    return res.status(400).json({ error: "At least one field is required" });
+  }
+
+  if (title !== undefined) {
+    task.title = title.trim();
+  }
+  if (completed !== undefined) {
+    task.completed = completed;
+  }
+
+  res.json({ task });
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
