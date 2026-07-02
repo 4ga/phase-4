@@ -255,6 +255,15 @@ app.post("/api/books", (req, res) => {
   res.status(201).json({ book: newBook });
 });
 
+app.patch("/api/books/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const book = books.find((b) => b.id === id);
+
+  if (!book) {
+    return res.status(400).json({ success: false, error: "Book not found" });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
