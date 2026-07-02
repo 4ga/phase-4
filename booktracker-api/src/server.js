@@ -255,13 +255,78 @@ app.post("/api/books", (req, res) => {
   res.status(201).json({ book: newBook });
 });
 
+const PATCHABLE_BOOK_FIELDS = [
+  "title",
+  "author",
+  "publicationYear",
+  "format",
+  "genre",
+  "audience",
+  "availability",
+];
+
+const TEXT_PATCH_FIELDS = [
+  { field: "title", label: "Title" },
+  { field: "author", label: "Author" },
+  { field: "format", label: "Format" },
+  { field: "genre", label: "Genre" },
+  { field: "audience", label: "Audience" },
+  { field: "availability", label: "Availability" },
+];
+
+const hasAtleastOnePatchField = (body) => {
+  return PATCHABLE_BOOK_FIELDS.some((field) => body[field] !== undefined);
+};
+
+const isInvalidTextField = (value) => {
+  return typeof value !== "string" || value.trim() === "";
+};
+
+const validateBookPatch = (body) => {
+  if (!hasAtleastOnePatchField(body)) {
+    return "At least one field is required";
+  }
+
+  const invalidTextField = TEXT_PATCH_FIELDS.find(({ field }) => {
+    return body[field] !== undefined && isInvalidTextField(body[field]);
+  });
+
+  if (invalidTextField) {
+    return `${invalidTextField.label} cannot be empty`;
+  }
+
+  if (
+    body.publicationYear !== undefined &&
+    Number.isNaN(Number(body.publicationYear))
+  ) {
+    return "Publication year must be a number";
+  }
+
+  return null;
+};
+
 app.patch("/api/books/:id", (req, res) => {
   const id = Number(req.params.id);
-  const book = books.find((b) => b.id === id);
 
-  if (!book) {
+  const bookIndex = books.findIndex((b) => b.id === id);
+
+  if (bookIndex === -1) {
     return res.status(400).json({ success: false, error: "Book not found" });
   }
+
+  const validationError = validateBookPatch(req.body);
+
+  if (validationError) {
+    return res.status(400).json({ success: false, error: validationError });
+  }
+
+  books[bookIndex] = {
+    ...books[bookIndex],
+    ...req.body,
+    updatedAt: Date.now(),
+  };
+
+  return res.json({ success: true, book: books[bookIndex] });
 });
 
 app.listen(PORT, () => {
