@@ -329,6 +329,20 @@ app.patch("/api/books/:id", (req, res) => {
   return res.json({ success: true, book: books[bookIndex] });
 });
 
+app.delete("/api/books/:id", (req, res) => {
+  const id = Number(req.params.id);
+
+  const bookIndex = books.findIndex((book) => book.id === id);
+
+  if (bookIndex === -1) {
+    return res.status(404).json({ success: false, error: "Book not found" });
+  }
+
+  books.splice(bookIndex, 1);
+
+  res.status(204).send();
+});
+
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
