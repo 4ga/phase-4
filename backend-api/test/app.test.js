@@ -202,3 +202,54 @@ test("PATCH /api/tasks/:id returns 400 when no update fields are provided", asyn
     error: "At least one field is required",
   });
 });
+
+test("DELETE /api/tasks/:id returns 204 with no resppnse body", async () => {
+  const response = await request(app).delete("/api/tasks/2");
+
+  assert.equal(response.status, 204);
+  assert.equal(response.text, "");
+});
+
+test("DELETE /api/tasks/:id removes the requested task", async () => {
+  const deleteResponse = await request(app).delete("/api/tasks/2");
+
+  assert.equal(deleteResponse.status, 204);
+
+  const deletedTaskResponse = await request(app).get("/api/tasks/2");
+
+  assert.equal(deletedTaskResponse.status, 404);
+  assert.deepEqual(deletedTaskResponse.body, {
+    error: "Task not found",
+  });
+
+  const remainingTaskResponse = await request(app).get("/api/tasks/1");
+
+  assert.equal(remainingTaskResponse.status, 200);
+  assert.equal(remainingTaskResponse.body.task.id, 1);
+});
+
+test("DELETE /api/tasks/:id removes the task from the collection", async () => {
+  const deleteResponse = await request(app).delete("/api/tasks/2");
+
+  assert.equal(deleteResponse.status, 204);
+
+  const collectionResponse = await request(app).get("/api/tasks");
+
+  assert.equal(collectionResponse.status, 200);
+  assert.equal(collectionResponse.body.tasks.length, 2);
+
+  assert.equal(
+    collectionResponse.body.tasks.some((task) => task.id === 2),
+    false,
+  );
+});
+
+test("DELETE /api/tasks/:id returns 404 when the task is missing", async () => {
+  const response = await request(app).delete("/api/tasks/999");
+
+  assert.equal(response.status, 404);
+
+  assert.deepEqual(response.body, {
+    error: "Task not found",
+  });
+});

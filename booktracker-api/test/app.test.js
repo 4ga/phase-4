@@ -302,3 +302,56 @@ test("PATCH /api/books/:id returns 400 when no update fields are provided", asyn
     error: "At least one field is required",
   });
 });
+
+test("DELETE /api/books/:id returns 204 with no resppnse body", async () => {
+  const response = await request(app).delete("/api/books/2");
+
+  assert.equal(response.status, 204);
+  assert.equal(response.text, "");
+});
+
+test("DELETE /api/books/:id removes the requested book", async () => {
+  const deleteResponse = await request(app).delete("/api/books/2");
+
+  assert.equal(deleteResponse.status, 204);
+
+  const deletedTaskResponse = await request(app).get("/api/books/2");
+
+  assert.equal(deletedTaskResponse.status, 404);
+  assert.deepEqual(deletedTaskResponse.body, {
+    success: false,
+    error: "Book not found",
+  });
+
+  const remainingTaskResponse = await request(app).get("/api/books/1");
+
+  assert.equal(remainingTaskResponse.status, 200);
+  assert.equal(remainingTaskResponse.body.book.id, 1);
+});
+
+test("DELETE /api/books/:id removes the book from the collection", async () => {
+  const deleteResponse = await request(app).delete("/api/books/2");
+
+  assert.equal(deleteResponse.status, 204);
+
+  const collectionResponse = await request(app).get("/api/books");
+
+  assert.equal(collectionResponse.status, 200);
+  assert.equal(collectionResponse.body.books.length, 6);
+
+  assert.equal(
+    collectionResponse.body.books.some((task) => task.id === 2),
+    false,
+  );
+});
+
+test("DELETE /api/books/:id returns 404 when the book is missing", async () => {
+  const response = await request(app).delete("/api/books/999");
+
+  assert.equal(response.status, 404);
+
+  assert.deepEqual(response.body, {
+    success: false,
+    error: "Book not found",
+  });
+});
