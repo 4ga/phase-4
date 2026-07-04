@@ -356,6 +356,14 @@ app.delete("/api/books/:id", findBookById, (req, res) => {
   res.status(204).send();
 });
 
+app.use((req, res) => {
+  res.status(404).json({
+    error: "Route not found",
+    method: req.method,
+    path: req.originalUrl,
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });

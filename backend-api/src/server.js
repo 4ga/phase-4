@@ -138,6 +138,14 @@ app.delete("/api/tasks/:id", findTaskById, (req, res) => {
   res.status(204).send();
 });
 
+app.use((req, res) => {
+  res.status(404).json({
+    error: "Route not found",
+    method: req.method,
+    path: req.originalUrl,
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
