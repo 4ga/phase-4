@@ -105,7 +105,7 @@ const findBookById = (req, res, next) => {
   const bookIndex = books.findIndex((b) => b.id === id);
 
   if (bookIndex === -1) {
-    return res.json({ success: false, error: "Book not found." });
+    return res.status(404).json({ success: false, error: "Book not found" });
   }
 
   req.book = books[bookIndex];
@@ -206,7 +206,8 @@ app.get("/api/books", (req, res) => {
 });
 
 app.get("/api/books/:id", findBookById, (req, res) => {
-  res.json({ success: true, book: req.book });
+  const { createdAt, updatedAt, ...bookWithoutTimestamps } = req.book;
+  res.json({ success: true, book: bookWithoutTimestamps });
 });
 
 app.post("/api/books", (req, res) => {
