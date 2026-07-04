@@ -1,4 +1,8 @@
 import express from "express";
+import {
+  validateCreateTask,
+  validateUpdateTask,
+} from "../middleware/taskValidation.js";
 
 const taskRouter = express.Router();
 
@@ -66,28 +70,12 @@ taskRouter.get("/:id", findTaskById, (req, res) => {
   res.json({ task: req.task });
 });
 
-taskRouter.post("/", (req, res) => {
+taskRouter.post("/", validateCreateTask, (req, res) => {
   const { title } = req.body;
-
-  if (title === undefined || title === null) {
-    return res.status(400).json({
-      error: "Title is required",
-    });
-  }
-
-  if (typeof title !== "string") {
-    return res.status(400).json({
-      error: "Title must be a string",
-    });
-  }
-
-  if (title.trim() === "") {
-    return res.status(400).json({ error: "Title is required" });
-  }
 
   const newTask = {
     id: nextTaskId,
-    title: title.trim(),
+    title,
     completed: false,
   };
 
@@ -97,26 +85,8 @@ taskRouter.post("/", (req, res) => {
   res.status(201).json({ task: newTask });
 });
 
-taskRouter.patch("/:id", findTaskById, (req, res) => {
+taskRouter.patch("/:id", findTaskById, validateUpdateTask, (req, res) => {
   const { title, completed } = req.body;
-
-  if (title !== undefined && typeof title !== "string") {
-    return res.status(400).json({ error: "Title must be a string" });
-  }
-
-  if (title !== undefined && title.trim() === "") {
-    return res.status(400).json({
-      error: "Title cannot be empty",
-    });
-  }
-
-  if (completed !== undefined && typeof completed !== "boolean") {
-    return res.status(400).json({ error: "Completed must be a boolean" });
-  }
-
-  if (title === undefined && completed === undefined) {
-    return res.status(400).json({ error: "At least one field is required" });
-  }
 
   if (title !== undefined) {
     req.task.title = title.trim();

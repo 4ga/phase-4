@@ -1,4 +1,8 @@
 import express from "express";
+import {
+  normalizeBookBody,
+  validateBookBody,
+} from "../middleware/bookValidation.js";
 
 const bookRouter = express.Router();
 
@@ -104,15 +108,17 @@ export const resetBooks = () => {
 
 const findBookById = (req, res, next) => {
   const id = Number(req.params.id);
-
-  const bookIndex = books.findIndex((b) => b.id === id);
+  const bookIndex = books.findIndex((book) => book.id === id);
 
   if (bookIndex === -1) {
-    return res.status(404).json({ success: false, error: "Book not found" });
+    return res.status(404).json({
+      success: false,
+      error: "Book not found",
+    });
   }
 
-  req.book = books[bookIndex];
   req.bookIndex = bookIndex;
+  req.book = books[bookIndex];
 
   next();
 };
@@ -192,114 +198,7 @@ bookRouter.get("/:id", findBookById, (req, res) => {
   res.json({ success: true, book: bookWithoutTimestamps });
 });
 
-const BOOK_FIELDS = [
-  "title",
-  "author",
-  "publicationYear",
-  "format",
-  "genre",
-  "audience",
-  "availability",
-];
-
-const TEXT_BOOK_FIELDS = [
-  { field: "title", label: "Title" },
-  { field: "author", label: "Author" },
-  { field: "format", label: "Format" },
-  { field: "genre", label: "Genre" },
-  { field: "audience", label: "Audience" },
-  { field: "availability", label: "Availability" },
-];
-
-const normalizeTextValue = (value) => {
-  if (typeof value !== "string") {
-    return value;
-  }
-  return value.trim().replace(/\s+/g, " ");
-};
-
-const normalizeBookBody = (body) => {
-  const normalizedBody = { ...body };
-
-  for (const { field } of TEXT_BOOK_FIELDS) {
-    if (body[field] !== undefined) {
-      normalizedBody[field] = normalizeTextValue(body[field]);
-    }
-  }
-  return normalizedBody;
-};
-
-const getTextFieldError = (value, label, partial) => {
-  if (value === undefined) {
-    return partial ? null : `${label} is required`;
-  }
-
-  if (value === null || value === "") {
-    return `${label} is required`;
-  }
-
-  if (typeof value !== "string") {
-    return `${label} must be a string`;
-  }
-
-  if (value.trim() === "") {
-    return partial ? `${label} cannot be empty` : `${label} is required`;
-  }
-  return null;
-};
-
-const validateTextFields = (body, partial) => {
-  for (const { field, label } of TEXT_BOOK_FIELDS) {
-    const error = getTextFieldError(body[field], label, partial);
-
-    if (error) {
-      return error;
-    }
-  }
-  return null;
-};
-
-const validatePublicationYear = (publicationYear, partial) => {
-  if (publicationYear === undefined) {
-    return partial ? null : "Publication year is required";
-  }
-
-  if (
-    publicationYear === "" ||
-    publicationYear === null ||
-    Number.isNaN(Number(publicationYear))
-  ) {
-    return "Publication yeaer must be a number";
-  }
-
-  return null;
-};
-
-const hasBookField = (body) => {
-  return BOOK_FIELDS.some((field) => body[field] !== undefined);
-};
-
-const validateBook = (body, { partial = false } = {}) => {
-  if (partial && !hasBookField(body)) {
-    return "At least one field is required";
-  }
-
-  const textFieldError = validateTextFields(body, partial);
-  if (textFieldError) {
-    return textFieldError;
-  }
-
-  return validatePublicationYear(body.publicationYear, partial);
-};
-
-bookRouter.post("/", (req, res) => {
-  const normalizedBody = normalizeBookBody(req.body);
-  const validationError = validateBook(req.body);
-
-  if (validationError) {
-    return res.status(400).json({ success: false, error: validationError });
-  }
-
+bookRouter.post("/", normalizeBookBody, validateBookBody(), (req, res) => {
   const {
     title,
     author,
@@ -308,15 +207,15 @@ bookRouter.post("/", (req, res) => {
     genre,
     audience,
     availability,
-  } = normalizedBody;
+  } = req.body;
 
   const timestamp = Date.now();
 
   const newBook = {
     id: nextBookId,
-    title: title.trim(),
+    title,
     author,
-    publicationYear,
+    publicationYear: Number(publicationYear),
     format,
     genre,
     audience,
@@ -333,29 +232,30 @@ bookRouter.post("/", (req, res) => {
   res.status(201).json({ success: true, book: bookWithoutTimestamps });
 });
 
-bookRouter.patch("/:id", findBookById, (req, res) => {
-  const normalizedBody = normalizeBookBody(req.body);
-  const validationError = validateBook(req.body, { partial: true });
+bookRouter.patch(
+  "/:id",
+  findBookById,
+  normalizeBookBody,
+  validateBookBody({ partial: true }),
+  (req, res) => {
+    const updates = { ...req.body };
 
-  if (validationError) {
-    return res.status(400).json({ success: false, error: validationError });
-  }
+    if (updates.publicationYear !== undefined) {
+      updates.publicationYear = Number(updates.publicationYear);
+    }
 
-  books[req.bookIndex] = {
-    ...books[req.bookIndex],
-    ...normalizedBody,
-    publicationYear:
-      req.body.publicationYear === undefined
-        ? books[req.bookIndex].publicationYear
-        : Number(req.body.publicationYear),
-    updatedAt: Date.now(),
-  };
+    books[req.bookIndex] = {
+      ...books[req.bookIndex],
+      ...updates,
+      updatedAt: Date.now(),
+    };
 
-  const { createdAt, updatedAt, ...bookWithoutTimestamps } =
-    books[req.bookIndex];
+    const { createdAt, updatedAt, ...bookWithoutTimestamps } =
+      books[req.bookIndex];
 
-  return res.json({ success: true, book: bookWithoutTimestamps });
-});
+    return res.json({ success: true, book: bookWithoutTimestamps });
+  },
+);
 
 bookRouter.delete("/:id", findBookById, (req, res) => {
   books.splice(req.bookIndex, 1);
