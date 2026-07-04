@@ -23,6 +23,21 @@ const tasks = [
 let nextTaskId =
   tasks.reduce((highestId, task) => Math.max(highestId, task.id), 0) + 1;
 
+const findTaskById = (req, res, next) => {
+  const id = Number(req.params.id);
+
+  const taskIndex = tasks.findIndex((task) => task.id === id);
+
+  if (taskIndex === -1) {
+    return res.status(404).json({ error: "Task not found" });
+  }
+
+  req.task = tasks[taskIndex];
+  req.taskIndex = taskIndex;
+
+  next();
+};
+
 app.get("/", (req, res) => {
   res.send("Phase 4 Backend API is running");
 });
@@ -62,15 +77,8 @@ app.get("/api/tasks", (req, res) => {
   res.json({ tasks: filteredTasks });
 });
 
-app.get("/api/tasks/:id", (req, res) => {
-  const id = Number(req.params.id);
-
-  const task = tasks.find((task) => task.id === id);
-
-  if (!task) {
-    return res.status(404).json({ error: "Task not found." });
-  }
-  res.json({ task });
+app.get("/api/tasks/:id", findTaskById, (req, res) => {
+  res.json({ task: req.task });
 });
 
 app.post("/api/tasks", (req, res) => {
@@ -93,14 +101,11 @@ app.post("/api/tasks", (req, res) => {
   res.status(201).json({ task: newTask });
 });
 
-app.patch("/api/tasks/:id", (req, res) => {
-  const id = Number(req.params.id);
+app.patch("/api/tasks/:id", findTaskById, (req, res) => {
   const { title, completed } = req.body;
 
-  const task = tasks.find((task) => task.id === id);
-
-  if (!task) {
-    return res.status(404).json({ error: "Task not found" });
+  if (title !== undefined && typeof title !== "string") {
+    return res.status(400).json({ error: "Title must be a string" });
   }
 
   if (title !== undefined && title.trim() === "") {
@@ -118,24 +123,17 @@ app.patch("/api/tasks/:id", (req, res) => {
   }
 
   if (title !== undefined) {
-    task.title = title.trim();
+    req.task.title = title.trim();
   }
   if (completed !== undefined) {
-    task.completed = completed;
+    req.task.completed = completed;
   }
 
-  res.json({ task });
+  res.json({ task: req.task });
 });
 
-app.delete("/api/tasks/:id", (req, res) => {
-  const id = Number(req.params.id);
-
-  const taskIndex = tasks.findIndex((task) => task.id === id);
-  if (taskIndex === -1) {
-    return res.status(404).json({ error: "Task not found" });
-  }
-
-  tasks.splice(taskIndex, 1);
+app.delete("/api/tasks/:id", findTaskById, (req, res) => {
+  tasks.splice(req.taskIndex, 1);
 
   res.status(204).send();
 });

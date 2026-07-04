@@ -101,6 +101,21 @@ const books = [
 let nextBookId =
   books.reduce((highestId, book) => Math.max(highestId, book.id), 0) + 1;
 
+const findBookById = (req, res, next) => {
+  const id = Number(req.params.id);
+
+  const bookIndex = books.findIndex((b) => b.id === id);
+
+  if (bookIndex === -1) {
+    return res.json({ success: false, error: "Book not found." });
+  }
+
+  req.book = books[bookIndex];
+  req.bookIndex = bookIndex;
+
+  next();
+};
+
 app.get("/", (req, res) => {
   res.send("Welcome to the book tracker app!");
 });
@@ -192,16 +207,8 @@ app.get("/api/books", (req, res) => {
   res.json({ success: true, books: sortedBooks });
 });
 
-app.get("/api/books/:id", (req, res) => {
-  const id = Number(req.params.id);
-
-  const book = books.find((b) => b.id === id);
-
-  if (!book) {
-    return res.json({ success: false, error: "Book not found." });
-  }
-
-  res.json({ success: true, books: book });
+app.get("/api/books/:id", findBookById, (req, res) => {
+  res.json({ success: true, book: req.book });
 });
 
 app.post("/api/books", (req, res) => {
@@ -327,15 +334,7 @@ const validateBookPatch = (body) => {
   return null;
 };
 
-app.patch("/api/books/:id", (req, res) => {
-  const id = Number(req.params.id);
-
-  const bookIndex = books.findIndex((b) => b.id === id);
-
-  if (bookIndex === -1) {
-    return res.status(400).json({ success: false, error: "Book not found" });
-  }
-
+app.patch("/api/books/:id", findBookById, (req, res) => {
   const validationError = validateBookPatch(req.body);
 
   if (validationError) {
@@ -351,16 +350,8 @@ app.patch("/api/books/:id", (req, res) => {
   return res.json({ success: true, book: books[bookIndex] });
 });
 
-app.delete("/api/books/:id", (req, res) => {
-  const id = Number(req.params.id);
-
-  const bookIndex = books.findIndex((book) => book.id === id);
-
-  if (bookIndex === -1) {
-    return res.status(404).json({ success: false, error: "Book not found" });
-  }
-
-  books.splice(bookIndex, 1);
+app.delete("/api/books/:id", findBookById, (req, res) => {
+  books.splice(req.bookIndex, 1);
 
   res.status(204).send();
 });
