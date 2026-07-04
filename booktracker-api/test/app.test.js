@@ -2,7 +2,8 @@ import test, { beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import request from "supertest";
 
-import app, { resetBooks } from "../src/app.js";
+import app from "../src/app.js";
+import { resetBooks } from "../src/routes/bookRoutes.js";
 
 beforeEach(() => {
   resetBooks();

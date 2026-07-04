@@ -2,7 +2,8 @@ import test, { beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import request from "supertest";
 
-import app, { resetTasks } from "../src/app.js";
+import app from "../src/app.js";
+import { resetTasks } from "../src/routes/taskRoutes.js";
 
 beforeEach(() => {
   resetTasks();
