@@ -5,6 +5,11 @@ const PORT = 3000;
 
 app.use(express.json());
 
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.originalUrl}`);
+  next();
+});
+
 const tasks = [
   { id: 1, title: "Learn HTTP basics", completed: false },
   { id: 2, title: "Practice Express routes", completed: false },
