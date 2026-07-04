@@ -116,3 +116,89 @@ test("POST /api/tasks return 400 when title is not a string", async () => {
   assert.equal(response.status, 400);
   assert.deepEqual(response.body, { error: "Title must be a string" });
 });
+
+test("PATCH /api/tasks/:id updates the task title", async () => {
+  const response = await request(app).patch("/api/tasks/1").send({
+    title: "    Test PATCH title updates  ",
+  });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(response.body, {
+    task: { id: 1, title: "Test PATCH title updates", completed: false },
+  });
+
+  const getResponse = await request(app).get("/api/tasks/1");
+  assert.equal(getResponse.status, 200);
+  assert.deepEqual(getResponse.body, response.body);
+});
+
+test("PATCH /api/tasks/:id updates completed status", async () => {
+  const response = await request(app)
+    .patch("/api/tasks/1")
+    .send({ completed: true });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(response.body, {
+    task: { id: 1, title: "Learn HTTP basics", completed: true },
+  });
+});
+
+test("PATCH /api/tasks/:id updates title and completed together", async () => {
+  const response = await request(app)
+    .patch("/api/tasks/2")
+    .send({ title: "Test multiple PATCH fields", completed: true });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(response.body, {
+    task: { id: 2, title: "Test multiple PATCH fields", completed: true },
+  });
+});
+
+test("PATCH /api/tasks/:id returns 404 when the task is missing", async () => {
+  const response = await request(app)
+    .patch("/api/tasks/999")
+    .send({ completed: true });
+
+  assert.equal(response.status, 404);
+  assert.deepEqual(response.body, { error: "Task not found" });
+});
+
+test("PATCH /api/tasks/:id returns 400 when title is blank", async () => {
+  const response = await request(app)
+    .patch("/api/tasks/1")
+    .send({ title: "  " });
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(response.body, { error: "Title cannot be empty" });
+});
+
+test("PATCH /api/tasks/:id returns 400 when title is not a string", async () => {
+  const response = await request(app)
+    .patch("/api/tasks/1")
+    .send({ title: 123 });
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(response.body, { error: "Title must be a string" });
+});
+
+test("PATCH /api/tasks/:id returns 400 when completed is not a boolean", async () => {
+  const response = await request(app).patch("/api/tasks/1").send({
+    completed: "true",
+  });
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Completed must be a boolean",
+  });
+});
+
+test("PATCH /api/tasks/:id returns 400 when no update fields are provided", async () => {
+  const response = await request(app).patch("/api/tasks/1").send({});
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "At least one field is required",
+  });
+});

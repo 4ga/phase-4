@@ -188,3 +188,117 @@ test("POST /api/books returns 400 when title is not a string", async () => {
     error: "Title must be a string",
   });
 });
+
+test("PATCH /api/books/:id updates the task title", async () => {
+  const response = await request(app)
+    .patch("/api/books/1")
+    .send({ title: "    The Great Gatsby & Friends  " });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(response.body, {
+    success: true,
+    book: {
+      id: 1,
+      title: "The Great Gatsby & Friends",
+      author: "F. Scott Fitzgerald",
+      publicationYear: 1925,
+      format: "book",
+      genre: "fiction",
+      audience: "adult",
+      availability: "available",
+    },
+  });
+
+  const getResponse = await request(app).get("/api/books/1");
+
+  assert.equal(getResponse.status, 200);
+  assert.deepEqual(getResponse.body, response.body);
+});
+
+test("PATCH /api/books/:id updates availability status", async () => {
+  const response = await request(app)
+    .patch("/api/books/1")
+    .send({ availability: "Checked Out" });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(response.body, {
+    success: true,
+    book: {
+      id: 1,
+      title: "The Great Gatsby",
+      author: "F. Scott Fitzgerald",
+      publicationYear: 1925,
+      format: "book",
+      genre: "fiction",
+      audience: "adult",
+      availability: "Checked Out",
+    },
+  });
+});
+
+test("PATCH /api/books/:id updates title and availability together", async () => {
+  const response = await request(app).patch("/api/books/1").send({
+    title: "The Great Gatsby & Friends ",
+    availability: "Checked Out",
+  });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(response.body, {
+    success: true,
+    book: {
+      id: 1,
+      title: "The Great Gatsby & Friends",
+      author: "F. Scott Fitzgerald",
+      publicationYear: 1925,
+      format: "book",
+      genre: "fiction",
+      audience: "adult",
+      availability: "Checked Out",
+    },
+  });
+});
+
+test("PATCH /api/books/:id returns 404 when the book is missing", async () => {
+  const response = await request(app)
+    .patch("/api/books/999")
+    .send({ title: "The Great Gatsby & Friends" });
+
+  assert.equal(response.status, 404);
+  assert.deepEqual(response.body, { success: false, error: "Book not found" });
+});
+
+test("PATCH /api/books/:id returns 400 when title is blank", async () => {
+  const response = await request(app)
+    .patch("/api/books/1")
+    .send({ title: "  " });
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(response.body, {
+    success: false,
+    error: "Title cannot be empty",
+  });
+});
+
+test("PATCH /api/books/:id returns 400 when title is not a string", async () => {
+  const response = await request(app)
+    .patch("/api/books/1")
+    .send({ title: 123 });
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(response.body, {
+    success: false,
+    error: "Title must be a string",
+  });
+});
+
+test("PATCH /api/books/:id returns 400 when no update fields are provided", async () => {
+  const response = await request(app).patch("/api/books/1").send({});
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    success: false,
+    error: "At least one field is required",
+  });
+});

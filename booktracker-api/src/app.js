@@ -239,6 +239,24 @@ const TEXT_BOOK_FIELDS = [
   { field: "availability", label: "Availability" },
 ];
 
+const normalizeTextValue = (value) => {
+  if (typeof value !== "string") {
+    return value;
+  }
+  return value.trim().replace(/\s+/g, " ");
+};
+
+const normalizeBookBody = (body) => {
+  const normalizedBody = { ...body };
+
+  for (const { field } of TEXT_BOOK_FIELDS) {
+    if (body[field] !== undefined) {
+      normalizedBody[field] = normalizeTextValue(body[field]);
+    }
+  }
+  return normalizedBody;
+};
+
 const getTextFieldError = (value, label, partial) => {
   if (value === undefined) {
     return partial ? null : `${label} is required`;
@@ -303,6 +321,7 @@ const validateBook = (body, { partial = false } = {}) => {
 };
 
 app.post("/api/books", (req, res) => {
+  const normalizedBody = normalizeBookBody(req.body);
   const validationError = validateBook(req.body);
 
   if (validationError) {
@@ -317,7 +336,7 @@ app.post("/api/books", (req, res) => {
     genre,
     audience,
     availability,
-  } = req.body;
+  } = normalizedBody;
 
   const timestamp = Date.now();
 
@@ -343,6 +362,7 @@ app.post("/api/books", (req, res) => {
 });
 
 app.patch("/api/books/:id", findBookById, (req, res) => {
+  const normalizedBody = normalizeBookBody(req.body);
   const validationError = validateBook(req.body, { partial: true });
 
   if (validationError) {
@@ -351,7 +371,7 @@ app.patch("/api/books/:id", findBookById, (req, res) => {
 
   books[req.bookIndex] = {
     ...books[req.bookIndex],
-    ...req.body,
+    ...normalizedBody,
     publicationYear:
       req.body.publicationYear === undefined
         ? books[req.bookIndex].publicationYear
