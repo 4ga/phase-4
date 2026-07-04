@@ -1,8 +1,12 @@
-import test from "node:test";
+import test, { beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import request from "supertest";
 
-import app from "../src/app.js";
+import app, { resetBooks } from "../src/app.js";
+
+beforeEach(() => {
+  resetBooks();
+});
 
 test("GET /health returns API health information", async () => {
   const response = await request(app).get("/health");
@@ -63,5 +67,124 @@ test("an unknown endpoint returns a JSON 404 response", async () => {
     error: "Route not found",
     method: "GET",
     path: "/api/unknown",
+  });
+});
+
+test("POST /api/books creates a new book", async () => {
+  const response = await request(app).post("/api/books").send({
+    title: "The JavaScript Journey",
+    author: "Jane Coder",
+    publicationYear: 2025,
+    format: "e-book",
+    genre: "Information & Science",
+    audience: "adult",
+    availability: "available",
+  });
+
+  assert.equal(response.status, 201);
+  assert.match(response.headers["content-type"], /json/);
+  assert.deepEqual(response.body, {
+    success: true,
+    book: {
+      id: 8,
+      title: "The JavaScript Journey",
+      author: "Jane Coder",
+      publicationYear: 2025,
+      format: "e-book",
+      genre: "Information & Science",
+      audience: "adult",
+      availability: "available",
+    },
+  });
+
+  const getResponse = await request(app).get("/api/books/8");
+
+  assert.equal(getResponse.status, 200);
+  assert.deepEqual(getResponse.body, response.body);
+});
+
+test("POST /api/books trims the book title", async () => {
+  const response = await request(app).post("/api/books").send({
+    title: "       The JavaScript Journey       ",
+    author: "Jane Coder",
+    publicationYear: 2025,
+    format: "e-book",
+    genre: "Information & Science",
+    audience: "adult",
+    availability: "available",
+  });
+
+  assert.equal(response.status, 201);
+  assert.match(response.headers["content-type"], /json/);
+  assert.deepEqual(response.body, {
+    success: true,
+    book: {
+      id: 8,
+      title: "The JavaScript Journey",
+      author: "Jane Coder",
+      publicationYear: 2025,
+      format: "e-book",
+      genre: "Information & Science",
+      audience: "adult",
+      availability: "available",
+    },
+  });
+
+  const getResponse = await request(app).get("/api/books/8");
+
+  assert.equal(getResponse.status, 200);
+  assert.deepEqual(getResponse.body, response.body);
+});
+
+test("POST /api/books returns 400 when title is missing", async () => {
+  const response = await request(app).post("/api/books").send({
+    author: "Jane Coder",
+    publicationYear: 2025,
+    format: "e-book",
+    genre: "Information & Science",
+    audience: "adult",
+    availability: "available",
+  });
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(response.body, {
+    success: false,
+    error: "Title is required",
+  });
+});
+
+test("POST /api/books returns 400 when title is blank", async () => {
+  const response = await request(app).post("/api/books").send({
+    title: "   ",
+    author: "Jane Coder",
+    publicationYear: 2025,
+    format: "e-book",
+    genre: "Information & Science",
+    audience: "adult",
+    availability: "available",
+  });
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(response.body, {
+    success: false,
+    error: "Title is required",
+  });
+});
+
+test("POST /api/books returns 400 when title is not a string", async () => {
+  const response = await request(app).post("/api/books").send({
+    title: 123,
+    author: "Jane Coder",
+    publicationYear: 2025,
+    format: "e-book",
+    genre: "Information & Science",
+    audience: "adult",
+    availability: "available",
+  });
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(response.body, {
+    success: false,
+    error: "Title must be a string",
   });
 });

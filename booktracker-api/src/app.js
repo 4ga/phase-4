@@ -9,7 +9,7 @@ app.use((req, res, next) => {
   next();
 });
 
-const books = [
+const initialBooks = [
   {
     id: 1,
     title: "The Great Gatsby",
@@ -96,8 +96,18 @@ const books = [
   },
 ];
 
-let nextBookId =
+const createInitialBooks = () => initialBooks.map((book) => ({ ...book }));
+const books = createInitialBooks();
+
+const calculateNextBookId = () =>
   books.reduce((highestId, book) => Math.max(highestId, book.id), 0) + 1;
+
+let nextBookId = calculateNextBookId();
+
+export const resetBooks = () => {
+  books.splice(0, books.length, ...createInitialBooks());
+  nextBookId = calculateNextBookId();
+};
 
 const findBookById = (req, res, next) => {
   const id = Number(req.params.id);
@@ -210,7 +220,95 @@ app.get("/api/books/:id", findBookById, (req, res) => {
   res.json({ success: true, book: bookWithoutTimestamps });
 });
 
+const BOOK_FIELDS = [
+  "title",
+  "author",
+  "publicationYear",
+  "format",
+  "genre",
+  "audience",
+  "availability",
+];
+
+const TEXT_BOOK_FIELDS = [
+  { field: "title", label: "Title" },
+  { field: "author", label: "Author" },
+  { field: "format", label: "Format" },
+  { field: "genre", label: "Genre" },
+  { field: "audience", label: "Audience" },
+  { field: "availability", label: "Availability" },
+];
+
+const getTextFieldError = (value, label, partial) => {
+  if (value === undefined) {
+    return partial ? null : `${label} is required`;
+  }
+
+  if (value === null || value === "") {
+    return `${label} is required`;
+  }
+
+  if (typeof value !== "string") {
+    return `${label} must be a string`;
+  }
+
+  if (value.trim() === "") {
+    return partial ? `${label} cannot be empty` : `${label} is required`;
+  }
+  return null;
+};
+
+const validateTextFields = (body, partial) => {
+  for (const { field, label } of TEXT_BOOK_FIELDS) {
+    const error = getTextFieldError(body[field], label, partial);
+
+    if (error) {
+      return error;
+    }
+  }
+  return null;
+};
+
+const validatePublicationYear = (publicationYear, partial) => {
+  if (publicationYear === undefined) {
+    return partial ? null : "Publication year is required";
+  }
+
+  if (
+    publicationYear === "" ||
+    publicationYear === null ||
+    Number.isNaN(Number(publicationYear))
+  ) {
+    return "Publication yeaer must be a number";
+  }
+
+  return null;
+};
+
+const hasBookField = (body) => {
+  return BOOK_FIELDS.some((field) => body[field] !== undefined);
+};
+
+const validateBook = (body, { partial = false } = {}) => {
+  if (partial && !hasBookField(body)) {
+    return "At least one field is required";
+  }
+
+  const textFieldError = validateTextFields(body, partial);
+  if (textFieldError) {
+    return textFieldError;
+  }
+
+  return validatePublicationYear(body.publicationYear, partial);
+};
+
 app.post("/api/books", (req, res) => {
+  const validationError = validateBook(req.body);
+
+  if (validationError) {
+    return res.status(400).json({ success: false, error: validationError });
+  }
+
   const {
     title,
     author,
@@ -221,48 +319,7 @@ app.post("/api/books", (req, res) => {
     availability,
   } = req.body;
 
-  if (!title || title.trim() == "") {
-    return res
-      .status(404)
-      .json({ success: false, error: "Title is required." });
-  }
-
-  if (!author || author.trim() == "") {
-    return res
-      .status(404)
-      .json({ success: false, error: "Author is required." });
-  }
-
-  if (!publicationYear || !Number(publicationYear)) {
-    return res.status(404).json({
-      success: false,
-      error: "Number is required and must be numeric.",
-    });
-  }
-
-  if (!format || format.trim() == "") {
-    return res
-      .status(404)
-      .json({ success: false, error: "Format is required." });
-  }
-
-  if (!genre || genre.trim() == "") {
-    return res
-      .status(404)
-      .json({ success: false, error: "Genre is required." });
-  }
-
-  if (!audience || audience.trim() == "") {
-    return res
-      .status(404)
-      .json({ success: false, error: "Audience is required." });
-  }
-
-  if (!availability || availability.trim() == "") {
-    return res
-      .status(404)
-      .json({ success: false, error: "Availability is required." });
-  }
+  const timestamp = Date.now();
 
   const newBook = {
     id: nextBookId,
@@ -273,80 +330,39 @@ app.post("/api/books", (req, res) => {
     genre,
     audience,
     availability,
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    createdAt: timestamp,
+    updatedAt: timestamp,
   };
 
   nextBookId += 1;
   books.push(newBook);
 
-  res.status(201).json({ success: true, book: newBook });
+  const { createdAt, updatedAt, ...bookWithoutTimestamps } = newBook;
+
+  res.status(201).json({ success: true, book: bookWithoutTimestamps });
 });
 
-const PATCHABLE_BOOK_FIELDS = [
-  "title",
-  "author",
-  "publicationYear",
-  "format",
-  "genre",
-  "audience",
-  "availability",
-];
-
-const TEXT_PATCH_FIELDS = [
-  { field: "title", label: "Title" },
-  { field: "author", label: "Author" },
-  { field: "format", label: "Format" },
-  { field: "genre", label: "Genre" },
-  { field: "audience", label: "Audience" },
-  { field: "availability", label: "Availability" },
-];
-
-const hasAtleastOnePatchField = (body) => {
-  return PATCHABLE_BOOK_FIELDS.some((field) => body[field] !== undefined);
-};
-
-const isInvalidTextField = (value) => {
-  return typeof value !== "string" || value.trim() === "";
-};
-
-const validateBookPatch = (body) => {
-  if (!hasAtleastOnePatchField(body)) {
-    return "At least one field is required";
-  }
-
-  const invalidTextField = TEXT_PATCH_FIELDS.find(({ field }) => {
-    return body[field] !== undefined && isInvalidTextField(body[field]);
-  });
-
-  if (invalidTextField) {
-    return `${invalidTextField.label} cannot be empty`;
-  }
-
-  if (
-    body.publicationYear !== undefined &&
-    Number.isNaN(Number(body.publicationYear))
-  ) {
-    return "Publication year must be a number";
-  }
-
-  return null;
-};
-
 app.patch("/api/books/:id", findBookById, (req, res) => {
-  const validationError = validateBookPatch(req.body);
+  const validationError = validateBook(req.body, { partial: true });
 
   if (validationError) {
     return res.status(400).json({ success: false, error: validationError });
   }
 
-  books[bookIndex] = {
-    ...books[bookIndex],
+  books[req.bookIndex] = {
+    ...books[req.bookIndex],
     ...req.body,
+    publicationYear:
+      req.body.publicationYear === undefined
+        ? books[req.bookIndex].publicationYear
+        : Number(req.body.publicationYear),
     updatedAt: Date.now(),
   };
 
-  return res.json({ success: true, book: books[bookIndex] });
+  const { createdAt, updatedAt, ...bookWithoutTimestamps } =
+    books[req.bookIndex];
+
+  return res.json({ success: true, book: bookWithoutTimestamps });
 });
 
 app.delete("/api/books/:id", findBookById, (req, res) => {

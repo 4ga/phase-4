@@ -9,7 +9,7 @@ app.use((req, res, next) => {
   next();
 });
 
-const tasks = [
+const initialTasks = [
   { id: 1, title: "Learn HTTP basics", completed: false },
   { id: 2, title: "Practice Express routes", completed: false },
   {
@@ -19,8 +19,19 @@ const tasks = [
   },
 ];
 
-let nextTaskId =
+const createInitialTasks = () => initialTasks.map((task) => ({ ...task }));
+
+const tasks = createInitialTasks();
+
+const calculateNextTaskId = () =>
   tasks.reduce((highestId, task) => Math.max(highestId, task.id), 0) + 1;
+
+let nextTaskId = calculateNextTaskId();
+
+export const resetTasks = () => {
+  tasks.splice(0, tasks.length, ...createInitialTasks());
+  nextTaskId = calculateNextTaskId();
+};
 
 const findTaskById = (req, res, next) => {
   const id = Number(req.params.id);
@@ -83,7 +94,19 @@ app.get("/api/tasks/:id", findTaskById, (req, res) => {
 app.post("/api/tasks", (req, res) => {
   const { title } = req.body;
 
-  if (!title || title.trim() === "") {
+  if (title === undefined || title === null) {
+    return res.status(400).json({
+      error: "Title is required",
+    });
+  }
+
+  if (typeof title !== "string") {
+    return res.status(400).json({
+      error: "Title must be a string",
+    });
+  }
+
+  if (title.trim() === "") {
     return res.status(400).json({ error: "Title is required" });
   }
 
@@ -94,7 +117,6 @@ app.post("/api/tasks", (req, res) => {
   };
 
   nextTaskId += 1;
-
   tasks.push(newTask);
 
   res.status(201).json({ task: newTask });
