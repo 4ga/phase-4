@@ -15,6 +15,9 @@ const tasks = [
   },
 ];
 
+let nextTaskId =
+  tasks.reduce((highestId, task) => Math.max(highestId, task.id), 0) + 1;
+
 app.get("/", (req, res) => {
   res.send("Phase 4 Backend API is running");
 });
@@ -73,10 +76,12 @@ app.post("/api/tasks", (req, res) => {
   }
 
   const newTask = {
-    id: tasks.length + 1,
+    id: nextTaskId,
     title: title.trim(),
     completed: false,
   };
+
+  nextTaskId += 1;
 
   tasks.push(newTask);
 

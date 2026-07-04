@@ -93,6 +93,9 @@ const books = [
   },
 ];
 
+let nextBookId =
+  books.reduce((highestId, book) => Math.max(highestId, book.id), 0) + 1;
+
 app.get("/", (req, res) => {
   res.send("Welcome to the book tracker app!");
 });
@@ -190,10 +193,10 @@ app.get("/api/books/:id", (req, res) => {
   const book = books.find((b) => b.id === id);
 
   if (!book) {
-    return res.json({ success: false, message: "Book not found." });
+    return res.json({ success: false, error: "Book not found." });
   }
 
-  res.json({ success: true, message: book });
+  res.json({ success: true, books: book });
 });
 
 app.post("/api/books", (req, res) => {
@@ -208,37 +211,50 @@ app.post("/api/books", (req, res) => {
   } = req.body;
 
   if (!title || title.trim() == "") {
-    return res.status(404).json({ error: "Title is required." });
+    return res
+      .status(404)
+      .json({ success: false, error: "Title is required." });
   }
 
   if (!author || author.trim() == "") {
-    return res.status(404).json({ error: "Author is required." });
+    return res
+      .status(404)
+      .json({ success: false, error: "Author is required." });
   }
 
   if (!publicationYear || !Number(publicationYear)) {
-    return res
-      .status(404)
-      .json({ error: "Number is required and must be numeric." });
+    return res.status(404).json({
+      success: false,
+      error: "Number is required and must be numeric.",
+    });
   }
 
   if (!format || format.trim() == "") {
-    return res.status(404).json({ error: "Format is required." });
+    return res
+      .status(404)
+      .json({ success: false, error: "Format is required." });
   }
 
   if (!genre || genre.trim() == "") {
-    return res.status(404).json({ error: "Genre is required." });
+    return res
+      .status(404)
+      .json({ success: false, error: "Genre is required." });
   }
 
   if (!audience || audience.trim() == "") {
-    return res.status(404).json({ error: "Audience is required." });
+    return res
+      .status(404)
+      .json({ success: false, error: "Audience is required." });
   }
 
   if (!availability || availability.trim() == "") {
-    return res.status(404).json({ error: "Availability is required." });
+    return res
+      .status(404)
+      .json({ success: false, error: "Availability is required." });
   }
 
   const newBook = {
-    id: books.length + 1,
+    id: nextBookId,
     title: title.trim(),
     author,
     publicationYear,
@@ -250,9 +266,10 @@ app.post("/api/books", (req, res) => {
     updatedAt: Date.now(),
   };
 
+  nextBookId += 1;
   books.push(newBook);
 
-  res.status(201).json({ book: newBook });
+  res.status(201).json({ success: true, book: newBook });
 });
 
 const PATCHABLE_BOOK_FIELDS = [
