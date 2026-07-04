@@ -13,7 +13,8 @@
   "type": "module",
   "main": "src/server.js",
   "scripts": {
-    "start": "nodemon src/server.js"
+    "start": "nodemon src/server.js",
+    "dev": "nodemon --env-file=.env src/server.js"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

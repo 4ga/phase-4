@@ -4,7 +4,8 @@
   "description": "Phase 4 backend and APIs project",
   "main": "src/server.js",
   "scripts": {
-    "start": "nodemon src/server.js"
+    "start": "nodemon src/server.js",
+    "dev": "node --env-file=.env src/server.js"
   },
   "keywords": [],
   "author": "",

@@ -1,7 +1,9 @@
 import express from "express";
 
 const app = express();
-const PORT = 3000;
+
+const DEFAULT_PORT = 3000;
+const PORT = Number(process.env.PORT) || DEFAULT_PORT;
 
 app.use(express.json());
 
@@ -159,7 +161,7 @@ app.use((error, req, res, next) => {
     });
   }
 
-  res.status(500).json({ error: "Internal server errro" });
+  res.status(500).json({ error: "Internal server error" });
 });
 
 app.listen(PORT, () => {
