@@ -254,3 +254,75 @@ test("DELETE /api/tasks/:id returns 404 when the task is missing", async () => {
     error: "Task not found",
   });
 });
+
+test("GET /api/tasks filters completed tasks", async () => {
+  const response = await request(app)
+    .get("/api/tasks")
+    .query({ completed: "true" });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(
+    response.body.tasks.map((task) => task.id),
+    [3],
+  );
+
+  assert.ok(response.body.tasks.every((task) => task.completed === true));
+});
+
+test("GET /api/tasks filters incomplete tasks", async () => {
+  const response = await request(app).get("/api/tasks").query({
+    completed: "false",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.tasks.map((task) => task.id),
+    [1, 2],
+  );
+
+  assert.ok(response.body.tasks.every((task) => task.completed === false));
+});
+
+test("GET /api/tasks searches titles without case sensitivity", async () => {
+  const response = await request(app)
+    .get("/api/tasks")
+    .query({ search: "EXPRESS" });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(
+    response.body.tasks.map((task) => task.id),
+    [2],
+  );
+  assert.equal(response.body.tasks[0].title, "Practice Express routes");
+});
+
+test("GET /api/tasks combines completed and search filters", async () => {
+  const response = await request(app)
+    .get("/api/tasks")
+    .query({ completed: "false", search: "express" });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(
+    response.body.tasks.map((task) => task.id),
+    [2],
+  );
+});
+
+test("GET /api/tasks filtering does not modify the task collection", async () => {
+  const filteredResponse = await request(app)
+    .get("/api/tasks")
+    .query({ completed: "true" });
+
+  assert.equal(filteredResponse.status, 200);
+  assert.equal(filteredResponse.body.tasks.length, 1);
+
+  const collectionResponse = await request(app).get("/api/tasks");
+
+  assert.equal(collectionResponse.status, 200);
+
+  assert.deepEqual(
+    collectionResponse.body.tasks.map((task) => task.id),
+    [1, 2, 3],
+  );
+});

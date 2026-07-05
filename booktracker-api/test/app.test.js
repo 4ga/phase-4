@@ -356,3 +356,90 @@ test("DELETE /api/books/:id returns 404 when the book is missing", async () => {
     error: "Book not found",
   });
 });
+
+test("GET /api/books filters available books", async () => {
+  const response = await request(app).get("/api/books").query({
+    availability: "available",
+    sortBy: "title-asc",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.books.map((book) => book.id),
+    [6, 7, 1, 3],
+  );
+
+  assert.ok(
+    response.body.books.every((book) => book.availability === "available"),
+  );
+});
+
+test("GET /api/books filters checked out books", async () => {
+  const response = await request(app).get("/api/books").query({
+    availability: "checked-out",
+    sortBy: "title-asc",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.books.map((book) => book.id),
+    [2],
+  );
+
+  assert.ok(
+    response.body.books.every((book) => book.availability === "checked-out"),
+  );
+});
+
+test("GET /api/books filters available books without case sensitivity", async () => {
+  const response = await request(app).get("/api/books").query({
+    availability: "AVAILABLE",
+    sortBy: "title-asc",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.books.map((book) => book.id),
+    [6, 7, 1, 3],
+  );
+
+  assert.ok(
+    response.body.books.every((book) => book.availability === "available"),
+  );
+});
+
+test("GET /api/books combines availability and search filters", async () => {
+  const response = await request(app).get("/api/books").query({
+    availability: "available",
+    searchTerm: "great",
+    sortBy: "title-asc",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.books.map((book) => book.id),
+    [1],
+  );
+});
+
+test("GET /api/books filtering does not modify the book collection", async () => {
+  const filteredResponse = await request(app)
+    .get("/api/books")
+    .query({ availability: "checked-out", sortBy: "title-asc" });
+
+  assert.equal(filteredResponse.status, 200);
+  assert.equal(filteredResponse.body.books.length, 1);
+
+  const collectionResponse = await request(app).get("/api/books");
+
+  assert.equal(collectionResponse.status, 200);
+
+  assert.deepEqual(
+    collectionResponse.body.books.map((book) => book.id),
+    [2, 6, 7, 1, 3, 4, 5],
+  );
+});
