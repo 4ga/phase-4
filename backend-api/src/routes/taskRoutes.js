@@ -2,6 +2,7 @@ import express from "express";
 import {
   validateCreateTask,
   validateUpdateTask,
+  validateTaskQuery,
 } from "../middleware/taskValidation.js";
 
 const taskRouter = express.Router();
@@ -45,25 +46,26 @@ const findTaskById = (req, res, next) => {
   next();
 };
 
-taskRouter.get("/", (req, res) => {
-  const { completed, search } = req.query;
+taskRouter.get("/", validateTaskQuery, (req, res) => {
+  const { completed, search } = req.taskFilters;
 
   let filteredTasks = tasks;
 
-  if (completed === "true") {
-    filteredTasks = filteredTasks.filter((task) => task.completed === true);
-  }
-
-  if (completed === "false") {
-    filteredTasks = filteredTasks.filter((task) => task.completed === false);
-  }
-
-  if (search) {
-    filteredTasks = filteredTasks.filter((task) =>
-      task.title.toLowerCase().includes(search.toLowerCase()),
+  if (completed !== undefined) {
+    filteredTasks = filteredTasks.filter(
+      (task) => task.completed === completed,
     );
   }
-  res.json({ tasks: filteredTasks });
+
+  if (search !== undefined) {
+    filteredTasks = filteredTasks.filter((task) =>
+      task.title.toLowerCase().includes(search),
+    );
+  }
+
+  res.json({
+    tasks: filteredTasks,
+  });
 });
 
 taskRouter.get("/:id", findTaskById, (req, res) => {

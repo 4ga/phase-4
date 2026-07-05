@@ -61,3 +61,42 @@ export const validateUpdateTask = (req, res, next) => {
 
   next();
 };
+
+export const validateTaskQuery = (req, res, next) => {
+  const { completed, search } = req.query;
+
+  if (
+    completed !== undefined &&
+    (typeof completed !== "string" || !["true", "false"].includes(completed))
+  ) {
+    return res.status(400).json({
+      error: "Completed filter must be true or false",
+    });
+  }
+
+  if (search !== undefined && typeof search !== "string") {
+    return res.status(400).json({
+      error: "Search filter must be a string",
+    });
+  }
+
+  let normalizedCompleted;
+
+  if (completed === "true") {
+    normalizedCompleted = true;
+  }
+
+  if (completed === "false") {
+    normalizedCompleted = false;
+  }
+
+  const normalizedSearch =
+    typeof search === "string" ? search.trim().toLowerCase() : undefined;
+
+  req.taskFilters = {
+    completed: normalizedCompleted,
+    search: normalizedSearch || undefined,
+  };
+
+  next();
+};

@@ -2,6 +2,7 @@ import express from "express";
 import {
   normalizeBookBody,
   validateBookBody,
+  validateBookQuery,
 } from "../middleware/bookValidation.js";
 
 const bookRouter = express.Router();
@@ -123,63 +124,39 @@ const findBookById = (req, res, next) => {
   next();
 };
 
-const normalizeQueryValue = (value) => {
-  if (typeof value !== "string") {
-    return value;
-  }
-  return value.trim().replace(/\s+/g, " ").toLowerCase();
-};
-
-bookRouter.get("/", (req, res) => {
-  const {
-    searchTerm,
-    genre,
-    format,
-    audience,
-    availability,
-    sortBy = "title-asc",
-  } = req.query;
-
-  const normalizedSearchTerm = normalizeQueryValue(searchTerm);
-  const normalizedGenre = normalizeQueryValue(genre);
-  const normalizedFormat = normalizeQueryValue(format);
-  const normalizedAudience = normalizeQueryValue(audience);
-  const normalizedAvailability = normalizeQueryValue(availability);
-  const normalizedSortBy = normalizeQueryValue(sortBy);
-
+bookRouter.get("/", validateBookQuery, (req, res) => {
   let filteredBooks = [...books];
 
-  if (normalizedSearchTerm) {
-    const normalizedSearchTerm = searchTerm.toLowerCase();
+  if (req.bookFilters.searchTerm) {
     filteredBooks = filteredBooks.filter((book) => {
       return (
-        book.title.toLowerCase().includes(normalizedSearchTerm) ||
-        book.author.toLowerCase().includes(normalizedSearchTerm)
+        book.title.toLowerCase().includes(req.bookFilters.searchTerm) ||
+        book.author.toLowerCase().includes(req.bookFilters.searchTerm)
       );
     });
   }
 
-  if (normalizedGenre) {
+  if (req.bookFilters.genre) {
     filteredBooks = filteredBooks.filter(
-      (book) => book.genre === normalizedGenre,
+      (book) => book.genre === req.bookFilters.genre,
     );
   }
 
-  if (normalizedFormat) {
+  if (req.bookFilters.format) {
     filteredBooks = filteredBooks.filter(
-      (book) => book.format === normalizedFormat,
+      (book) => book.format === req.bookFilters.format,
     );
   }
 
-  if (normalizedAudience) {
+  if (req.bookFilters.audience) {
     filteredBooks = filteredBooks.filter(
-      (book) => book.audience === normalizedAudience,
+      (book) => book.audience === req.bookFilters.audience,
     );
   }
 
-  if (normalizedAvailability) {
+  if (req.bookFilters.availability) {
     filteredBooks = filteredBooks.filter(
-      (book) => book.availability === normalizedAvailability,
+      (book) => book.availability === req.bookFilters.availability,
     );
   }
 
@@ -187,25 +164,25 @@ bookRouter.get("/", (req, res) => {
 
   let sortedBooks = [...filteredBooks];
 
-  if (normalizedSortBy === "title-asc") {
+  if (req.bookFilters.sortBy === "title-asc") {
     sortedBooks.sort((a, b) =>
       stripArticles(a.title).localeCompare(stripArticles(b.title)),
     );
-  } else if (normalizedSortBy === "title-desc") {
+  } else if (req.bookFilters.sortBy === "title-desc") {
     sortedBooks.sort((a, b) =>
       stripArticles(b.title).localeCompare(stripArticles(a.title)),
     );
-  } else if (normalizedSortBy === "author-asc") {
+  } else if (req.bookFilters.sortBy === "author-asc") {
     sortedBooks = [...filteredBooks].sort((a, b) =>
       a.author.localeCompare(b.author),
     );
-  } else if (normalizedSortBy === "author-desc") {
+  } else if (req.bookFilters.sortBy === "author-desc") {
     sortedBooks.sort((a, b) => b.author.localeCompare(a.author));
-  } else if (normalizedSortBy === "year-asc") {
+  } else if (req.bookFilters.sortBy === "year-asc") {
     sortedBooks.sort(
       (a, b) => Number(a.publicationYear) - Number(b.publicationYear),
     );
-  } else if (normalizedSortBy === "year-desc") {
+  } else if (req.bookFilters.sortBy === "year-desc") {
     sortedBooks.sort(
       (a, b) => Number(b.publicationYear) - Number(a.publicationYear),
     );

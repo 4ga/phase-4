@@ -443,3 +443,68 @@ test("GET /api/books filtering does not modify the book collection", async () =>
     [2, 6, 7, 1, 3, 4, 5],
   );
 });
+
+test("GET /api/books returns 400 for an invalid availability filter", async () => {
+  const response = await request(app).get("/api/books").query({
+    availability: "maybe",
+  });
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    success: false,
+    error: "Invalid availability filter",
+  });
+});
+
+test("GET /api/books rejects multiple availability filter values", async () => {
+  const response = await request(app).get(
+    "/api/books?availability=available&availability=on-hold",
+  );
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    success: false,
+    error: "Availability filter must be a string",
+  });
+});
+
+test("GET /api/books trims and normalizes the search filter", async () => {
+  const response = await request(app).get("/api/books").query({
+    searchTerm: "   GREAT   ",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.books.map((book) => book.id),
+    [1],
+  );
+});
+
+test("GET /api/books rejects multiple search filter values", async () => {
+  const response = await request(app).get(
+    "/api/books?searchTerm=http&searchTerm=express",
+  );
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    success: false,
+    error: "Search filter must be a string",
+  });
+});
+
+test("GET /api/books treats a blank search as no search filter", async () => {
+  const response = await request(app).get("/api/books").query({
+    searchTerm: "   ",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.books.map((book) => book.id),
+    [2, 6, 7, 1, 3, 4, 5],
+  );
+});

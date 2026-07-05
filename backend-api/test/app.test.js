@@ -326,3 +326,65 @@ test("GET /api/tasks filtering does not modify the task collection", async () =>
     [1, 2, 3],
   );
 });
+
+test("GET /api/tasks returns 400 for an invalid completed filter", async () => {
+  const response = await request(app).get("/api/tasks").query({
+    completed: "maybe",
+  });
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Completed filter must be true or false",
+  });
+});
+
+test("GET /api/tasks rejects multiple completed filter values", async () => {
+  const response = await request(app).get(
+    "/api/tasks?completed=true&completed=false",
+  );
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Completed filter must be true or false",
+  });
+});
+
+test("GET /api/tasks trims and normalizes the search filter", async () => {
+  const response = await request(app).get("/api/tasks").query({
+    search: "   EXPRESS   ",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.tasks.map((task) => task.id),
+    [2],
+  );
+});
+
+test("GET /api/tasks rejects multiple search filter values", async () => {
+  const response = await request(app).get(
+    "/api/tasks?search=http&search=express",
+  );
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Search filter must be a string",
+  });
+});
+
+test("GET /api/tasks treats a blank search as no search filter", async () => {
+  const response = await request(app).get("/api/tasks").query({
+    search: "   ",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.tasks.map((task) => task.id),
+    [1, 2, 3],
+  );
+});
