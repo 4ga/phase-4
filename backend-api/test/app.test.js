@@ -388,3 +388,136 @@ test("GET /api/tasks treats a blank search as no search filter", async () => {
     [1, 2, 3],
   );
 });
+
+test("GET /api/tasks sorts titles in ascending order by default", async () => {
+  const response = await request(app).get("/api/tasks").query({
+    sortBy: "title",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.tasks.map((task) => task.id),
+    [3, 1, 2],
+  );
+});
+
+test("GET /api/tasks normalizes sorting values", async () => {
+  const response = await request(app).get("/api/tasks").query({
+    sortBy: "   TITLE   ",
+    order: "   DESC   ",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.tasks.map((task) => task.id),
+    [2, 1, 3],
+  );
+});
+
+test("GET /api/tasks sorts IDs in descending order", async () => {
+  const response = await request(app).get("/api/tasks").query({
+    sortBy: "id",
+    order: "desc",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.tasks.map((task) => task.id),
+    [3, 2, 1],
+  );
+});
+
+test("GET /api/tasks applies filters before sorting", async () => {
+  const response = await request(app).get("/api/tasks").query({
+    completed: "false",
+    sortBy: "title",
+    order: "desc",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.tasks.map((task) => task.id),
+    [2, 1],
+  );
+});
+
+test("GET /api/tasks sorting does not modify task collection order", async () => {
+  const sortedResponse = await request(app).get("/api/tasks").query({
+    sortBy: "id",
+    order: "desc",
+  });
+
+  assert.equal(sortedResponse.status, 200);
+
+  const collectionResponse = await request(app).get("/api/tasks");
+
+  assert.equal(collectionResponse.status, 200);
+
+  assert.deepEqual(
+    collectionResponse.body.tasks.map((task) => task.id),
+    [1, 2, 3],
+  );
+});
+
+test("GET /api/tasks rejects an invalid sort field", async () => {
+  const response = await request(app).get("/api/tasks").query({
+    sortBy: "createdAt",
+  });
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Sort field must be id or title",
+  });
+});
+
+test("GET /api/tasks rejects multiple sort field values", async () => {
+  const response = await request(app).get("/api/tasks?sortBy=id&sortBy=title");
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Sort field must be a string",
+  });
+});
+
+test("GET /api/tasks rejects an invalid sort order", async () => {
+  const response = await request(app).get("/api/tasks").query({
+    sortBy: "id",
+    order: "sideways",
+  });
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Sort order must be asc or desc",
+  });
+});
+
+test("GET /api/tasks rejects multiple sort order values", async () => {
+  const response = await request(app).get(
+    "/api/tasks?sortBy=id&order=asc&order=desc",
+  );
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Sort order must be a string",
+  });
+});
+
+test("GET /api/tasks rejects sort order without a sort field", async () => {
+  const response = await request(app).get("/api/tasks").query({
+    order: "desc",
+  });
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Sort field is required when sort order is provided",
+  });
+});

@@ -31,6 +31,14 @@ export const resetTasks = () => {
   nextTaskId = calculateNextTaskId();
 };
 
+const compareTasks = (firstTask, secondTask, sortBy) => {
+  if (sortBy === "id") {
+    return firstTask.id - secondTask.id;
+  }
+
+  return firstTask.title.localeCompare(secondTask.title);
+};
+
 const findTaskById = (req, res, next) => {
   const id = Number(req.params.id);
 
@@ -47,7 +55,7 @@ const findTaskById = (req, res, next) => {
 };
 
 taskRouter.get("/", validateTaskQuery, (req, res) => {
-  const { completed, search } = req.taskFilters;
+  const { completed, search, sortBy, order } = req.taskFilters;
 
   let filteredTasks = tasks;
 
@@ -60,6 +68,15 @@ taskRouter.get("/", validateTaskQuery, (req, res) => {
   if (search !== undefined) {
     filteredTasks = filteredTasks.filter((task) =>
       task.title.toLowerCase().includes(search),
+    );
+  }
+
+  if (sortBy !== undefined) {
+    const direction = order === "desc" ? -1 : 1;
+
+    filteredTasks = [...filteredTasks].sort(
+      (firstTask, secondTask) =>
+        compareTasks(firstTask, secondTask, sortBy) * direction,
     );
   }
 

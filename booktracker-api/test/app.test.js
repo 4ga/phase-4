@@ -508,3 +508,46 @@ test("GET /api/books treats a blank search as no search filter", async () => {
     [2, 6, 7, 1, 3, 4, 5],
   );
 });
+
+test("GET /api/books rejects an invalid sort field", async () => {
+  const response = await request(app).get("/api/books").query({
+    sortBy: "id",
+  });
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    success: false,
+    error: "Invalid sortBy filter",
+  });
+});
+
+test("GET /api/books rejects multiple search filter values", async () => {
+  const response = await request(app).get(
+    "/api/books?sortBy=http&sortBy=express",
+  );
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    success: false,
+    error: "SortBy filter must be a string",
+  });
+});
+
+test("GET /api/books sorting does not modify task collection order", async () => {
+  const sortedResponse = await request(app).get("/api/books").query({
+    sortBy: "title-desc",
+  });
+
+  assert.equal(sortedResponse.status, 200);
+
+  const collectionResponse = await request(app).get("/api/books");
+
+  assert.equal(collectionResponse.status, 200);
+
+  assert.deepEqual(
+    collectionResponse.body.books.map((book) => book.id),
+    [2, 6, 7, 1, 3, 4, 5],
+  );
+});

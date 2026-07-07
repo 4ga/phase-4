@@ -1,3 +1,7 @@
+const ALLOWED_COMPLETED_FILTERS = new Set(["true", "false"]);
+const ALLOWED_SORT_FIELDS = ["id", "title"];
+const ALLOWED_SORT_ORDERS = ["asc", "desc"];
+
 export const validateCreateTask = (req, res, next) => {
   const { title } = req.body;
 
@@ -62,40 +66,127 @@ export const validateUpdateTask = (req, res, next) => {
   next();
 };
 
-export const validateTaskQuery = (req, res, next) => {
-  const { completed, search } = req.query;
+const parseCompletedFilter = (completed) => {
+  if (completed === undefined) {
+    return {
+      value: undefined,
+    };
+  }
 
   if (
-    completed !== undefined &&
-    (typeof completed !== "string" || !["true", "false"].includes(completed))
+    typeof completed !== "string" ||
+    !ALLOWED_COMPLETED_FILTERS.has(completed)
   ) {
-    return res.status(400).json({
+    return {
       error: "Completed filter must be true or false",
-    });
+    };
   }
 
-  if (search !== undefined && typeof search !== "string") {
-    return res.status(400).json({
-      error: "Search filter must be a string",
-    });
+  return {
+    value: completed === "true",
+  };
+};
+
+const normalizeOptionalString = (value, typeError) => {
+  if (value === undefined) {
+    return {
+      value: undefined,
+    };
   }
 
-  let normalizedCompleted;
-
-  if (completed === "true") {
-    normalizedCompleted = true;
+  if (typeof value !== "string") {
+    return {
+      error: typeError,
+    };
   }
 
-  if (completed === "false") {
-    normalizedCompleted = false;
+  return {
+    value: value.trim().toLowerCase(),
+  };
+};
+
+const getAllowedValueError = (value, allowedValues, errorMessage) => {
+  if (value === undefined || allowedValues.includes(value)) {
+    return undefined;
   }
 
-  const normalizedSearch =
-    typeof search === "string" ? search.trim().toLowerCase() : undefined;
+  return errorMessage;
+};
+
+const sendBadRequest = (res, error) =>
+  res.status(400).json({
+    error,
+  });
+
+export const validateTaskQuery = (req, res, next) => {
+  const { completed, search, sortBy, order } = req.query;
+
+  const completedResult = parseCompletedFilter(completed);
+
+  if (completedResult.error) {
+    return sendBadRequest(res, completedResult.error);
+  }
+
+  const searchResult = normalizeOptionalString(
+    search,
+    "Search filter must be a string",
+  );
+
+  if (searchResult.error) {
+    return sendBadRequest(res, searchResult.error);
+  }
+
+  const sortByResult = normalizeOptionalString(
+    sortBy,
+    "Sort field must be a string",
+  );
+
+  if (sortByResult.error) {
+    return sendBadRequest(res, sortByResult.error);
+  }
+
+  const orderResult = normalizeOptionalString(
+    order,
+    "Sort order must be a string",
+  );
+
+  if (orderResult.error) {
+    return sendBadRequest(res, orderResult.error);
+  }
+
+  const sortFieldError = getAllowedValueError(
+    sortByResult.value,
+    ALLOWED_SORT_FIELDS,
+    "Sort field must be id or title",
+  );
+
+  if (sortFieldError) {
+    return sendBadRequest(res, sortFieldError);
+  }
+
+  const sortOrderError = getAllowedValueError(
+    orderResult.value,
+    ALLOWED_SORT_ORDERS,
+    "Sort order must be asc or desc",
+  );
+
+  if (sortOrderError) {
+    return sendBadRequest(res, sortOrderError);
+  }
+
+  if (orderResult.value !== undefined && sortByResult.value === undefined) {
+    return sendBadRequest(
+      res,
+      "Sort field is required when sort order is provided",
+    );
+  }
 
   req.taskFilters = {
-    completed: normalizedCompleted,
-    search: normalizedSearch || undefined,
+    completed: completedResult.value,
+    search: searchResult.value || undefined,
+    sortBy: sortByResult.value,
+    order:
+      sortByResult.value === undefined ? undefined : orderResult.value || "asc",
   };
 
   next();
