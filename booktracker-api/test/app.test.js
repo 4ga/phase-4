@@ -729,3 +729,45 @@ test("GET /api/books rejects a limit above the maximum", async () => {
     error: "Limit cannot exceed 100",
   });
 });
+
+test("GET /api/books/:id returns 400 for a non-numeric book ID", async () => {
+  const response = await request(app).get("/api/books/abc");
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Book id must be a positive integer",
+  });
+});
+
+test("GET /api/books/:id returns 400 for book ID zero", async () => {
+  const response = await request(app).get("/api/books/0");
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Book id must be a positive integer",
+  });
+});
+
+test("PATCH /api/books/:id returns 400 for a decimal book ID", async () => {
+  const response = await request(app).patch("/api/books/1.5").send({
+    completed: true,
+  });
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Book id must be a positive integer",
+  });
+});
+
+test("DELETE /api/books/:id returns 400 for a negative book ID", async () => {
+  const response = await request(app).delete("/api/books/-1");
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Book id must be a positive integer",
+  });
+});

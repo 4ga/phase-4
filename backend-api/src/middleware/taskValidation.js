@@ -2,9 +2,24 @@ const ALLOWED_COMPLETED_FILTERS = new Set(["true", "false"]);
 const ALLOWED_SORT_FIELDS = ["id", "title"];
 const ALLOWED_SORT_ORDERS = ["asc", "desc"];
 
+const POSITIVE_INTEGER_PATTERN = /^[1-9]\d*$/;
+
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 100;
+
+export const validateTaskId = (req, res, next) => {
+  const { id } = req.params;
+
+  if (!POSITIVE_INTEGER_PATTERN.test(id)) {
+    return res
+      .status(400)
+      .json({ error: "Task id must be a positive integer" });
+  }
+  req.taskId = Number(id);
+
+  next();
+};
 
 const parsePositiveIntegerQuery = (value, fieldName) => {
   if (value === undefined) {

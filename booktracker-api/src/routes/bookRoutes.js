@@ -3,6 +3,7 @@ import {
   normalizeBookBody,
   validateBookBody,
   validateBookQuery,
+  validateBookId,
 } from "../middleware/bookValidation.js";
 
 const bookRouter = express.Router();
@@ -108,8 +109,7 @@ export const resetBooks = () => {
 };
 
 const findBookById = (req, res, next) => {
-  const id = Number(req.params.id);
-  const bookIndex = books.findIndex((book) => book.id === id);
+  const bookIndex = books.findIndex((book) => book.id === req.bookId);
 
   if (bookIndex === -1) {
     return res.status(404).json({
@@ -203,7 +203,7 @@ bookRouter.get("/", validateBookQuery, (req, res) => {
   });
 });
 
-bookRouter.get("/:id", findBookById, (req, res) => {
+bookRouter.get("/:id", validateBookId, findBookById, (req, res) => {
   const { createdAt, updatedAt, ...bookWithoutTimestamps } = req.book;
   res.json({ success: true, book: bookWithoutTimestamps });
 });
@@ -244,6 +244,7 @@ bookRouter.post("/", normalizeBookBody, validateBookBody(), (req, res) => {
 
 bookRouter.patch(
   "/:id",
+  validateBookId,
   findBookById,
   normalizeBookBody,
   validateBookBody({ partial: true }),
@@ -267,7 +268,7 @@ bookRouter.patch(
   },
 );
 
-bookRouter.delete("/:id", findBookById, (req, res) => {
+bookRouter.delete("/:id", validateBookId, findBookById, (req, res) => {
   books.splice(req.bookIndex, 1);
 
   res.status(204).send();

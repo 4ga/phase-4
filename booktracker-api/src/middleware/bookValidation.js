@@ -1,3 +1,5 @@
+const POSITIVE_INTEGER_PATTERN = /^[1-9]\d*$/;
+
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 100;
@@ -31,6 +33,20 @@ const QUERY_FILTERS = [
   { field: "page", label: "Page" },
   { field: "limit", label: "Limit" },
 ];
+
+export const validateBookId = (req, res, next) => {
+  const { id } = req.params;
+
+  if (!POSITIVE_INTEGER_PATTERN.test(id)) {
+    return res.status(400).json({
+      error: "Book id must be a positive integer",
+    });
+  }
+
+  req.bookId = Number(id);
+
+  next();
+};
 
 const parsePositiveIntegerQuery = (value, fieldName) => {
   if (value === undefined) {

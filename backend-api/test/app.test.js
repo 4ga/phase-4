@@ -678,3 +678,45 @@ test("GET /api/tasks rejects a limit above the maximum", async () => {
     error: "Limit must be 100 or less",
   });
 });
+
+test("GET /api/tasks/:id returns 400 for a non-numeric task ID", async () => {
+  const response = await request(app).get("/api/tasks/abc");
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Task id must be a positive integer",
+  });
+});
+
+test("GET /api/tasks/:id returns 400 for task ID zero", async () => {
+  const response = await request(app).get("/api/tasks/0");
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Task id must be a positive integer",
+  });
+});
+
+test("PATCH /api/tasks/:id returns 400 for a decimal task ID", async () => {
+  const response = await request(app).patch("/api/tasks/1.5").send({
+    completed: true,
+  });
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Task id must be a positive integer",
+  });
+});
+
+test("DELETE /api/tasks/:id returns 400 for a negative task ID", async () => {
+  const response = await request(app).delete("/api/tasks/-1");
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Task id must be a positive integer",
+  });
+});

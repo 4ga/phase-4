@@ -3,6 +3,7 @@ import {
   validateCreateTask,
   validateUpdateTask,
   validateTaskQuery,
+  validateTaskId,
 } from "../middleware/taskValidation.js";
 
 const taskRouter = express.Router();
@@ -40,9 +41,7 @@ const compareTasks = (firstTask, secondTask, sortBy) => {
 };
 
 const findTaskById = (req, res, next) => {
-  const id = Number(req.params.id);
-
-  const taskIndex = tasks.findIndex((task) => task.id === id);
+  const taskIndex = tasks.findIndex((task) => task.id === req.taskId);
 
   if (taskIndex === -1) {
     return res.status(404).json({ error: "Task not found" });
@@ -97,7 +96,7 @@ taskRouter.get("/", validateTaskQuery, (req, res) => {
   });
 });
 
-taskRouter.get("/:id", findTaskById, (req, res) => {
+taskRouter.get("/:id", validateTaskId, findTaskById, (req, res) => {
   res.json({ task: req.task });
 });
 
@@ -116,20 +115,26 @@ taskRouter.post("/", validateCreateTask, (req, res) => {
   res.status(201).json({ task: newTask });
 });
 
-taskRouter.patch("/:id", findTaskById, validateUpdateTask, (req, res) => {
-  const { title, completed } = req.body;
+taskRouter.patch(
+  "/:id",
+  validateTaskId,
+  findTaskById,
+  validateUpdateTask,
+  (req, res) => {
+    const { title, completed } = req.body;
 
-  if (title !== undefined) {
-    req.task.title = title.trim();
-  }
-  if (completed !== undefined) {
-    req.task.completed = completed;
-  }
+    if (title !== undefined) {
+      req.task.title = title.trim();
+    }
+    if (completed !== undefined) {
+      req.task.completed = completed;
+    }
 
-  res.json({ task: req.task });
-});
+    res.json({ task: req.task });
+  },
+);
 
-taskRouter.delete("/:id", findTaskById, (req, res) => {
+taskRouter.delete("/:id", validateTaskId, findTaskById, (req, res) => {
   tasks.splice(req.taskIndex, 1);
 
   res.status(204).send();
