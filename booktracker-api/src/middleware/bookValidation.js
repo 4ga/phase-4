@@ -1,3 +1,7 @@
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 10;
+const MAX_LIMIT = 100;
+
 const BOOK_FIELDS = [
   "title",
   "author",
@@ -24,7 +28,27 @@ const QUERY_FILTERS = [
   { field: "audience", label: "Audience" },
   { field: "availability", label: "Availability" },
   { field: "sortBy", label: "SortBy" },
+  { field: "page", label: "Page" },
+  { field: "limit", label: "Limit" },
 ];
+
+const parsePositiveIntegerQuery = (value, fieldName) => {
+  if (value === undefined) {
+    return { value: undefined };
+  }
+
+  if (typeof value !== "string") {
+    return { error: `${fieldName} must be a positive integer` };
+  }
+
+  const parsedValue = Number(value);
+
+  if (!Number.isInteger(parsedValue) || parsedValue < 1) {
+    return { error: `${fieldName} must be a positive integer` };
+  }
+
+  return { value: parsedValue };
+};
 
 const getQueryTypeError = (query) => {
   const invalidFilter = QUERY_FILTERS.find(({ field }) => {
@@ -173,6 +197,27 @@ const validateBookQuery = (req, res, next) => {
     });
   }
 
+  const pageResult = parsePositiveIntegerQuery(req.query.page, "Page");
+
+  if (pageResult.error) {
+    return res.status(400).json({ success: false, error: pageResult.error });
+  }
+
+  const limitResult = parsePositiveIntegerQuery(req.query.limit, "Limit");
+
+  if (limitResult.error) {
+    return res.status(400).json({ success: false, error: limitResult.error });
+  }
+
+  const page = pageResult.value ?? DEFAULT_PAGE;
+  const limit = limitResult.value ?? DEFAULT_LIMIT;
+
+  if (limitResult.value > MAX_LIMIT) {
+    return res
+      .status(400)
+      .json({ success: false, error: `Limit cannot exceed ${MAX_LIMIT}` });
+  }
+
   const normalizedFilters = {
     searchTerm: normalizeQueryValue(req.query.searchTerm),
     genre: normalizeQueryValue(req.query.genre),
@@ -180,6 +225,8 @@ const validateBookQuery = (req, res, next) => {
     audience: normalizeQueryValue(req.query.audience),
     availability: normalizeQueryValue(req.query.availability),
     sortBy: normalizeQueryValue(req.query.sortBy) || "title-asc",
+    page,
+    limit,
   };
 
   const validations = [

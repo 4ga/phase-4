@@ -55,7 +55,7 @@ const findTaskById = (req, res, next) => {
 };
 
 taskRouter.get("/", validateTaskQuery, (req, res) => {
-  const { completed, search, sortBy, order } = req.taskFilters;
+  const { completed, search, sortBy, order, page, limit } = req.taskFilters;
 
   let filteredTasks = tasks;
 
@@ -80,8 +80,20 @@ taskRouter.get("/", validateTaskQuery, (req, res) => {
     );
   }
 
+  const totalItems = filteredTasks.length;
+  const totalPages = Math.ceil(totalItems / limit);
+
+  const startIndex = (page - 1) * limit;
+  const paginatedTasks = filteredTasks.slice(startIndex, startIndex + limit);
+
   res.json({
-    tasks: filteredTasks,
+    tasks: paginatedTasks,
+    pagination: {
+      page,
+      limit,
+      totalItems,
+      totalPages,
+    },
   });
 });
 

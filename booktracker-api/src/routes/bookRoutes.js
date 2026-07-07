@@ -188,7 +188,19 @@ bookRouter.get("/", validateBookQuery, (req, res) => {
     );
   }
 
-  res.json({ success: true, books: sortedBooks });
+  const { page, limit } = req.bookFilters;
+
+  const totalItems = sortedBooks.length;
+  const totalPages = Math.ceil(totalItems / limit);
+  const startIndex = (page - 1) * limit;
+
+  const paginatedBooks = sortedBooks.slice(startIndex, startIndex + limit);
+
+  res.json({
+    success: true,
+    books: paginatedBooks,
+    pagination: { page, limit, totalItems, totalPages },
+  });
 });
 
 bookRouter.get("/:id", findBookById, (req, res) => {

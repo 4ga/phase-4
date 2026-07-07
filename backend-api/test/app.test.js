@@ -521,3 +521,160 @@ test("GET /api/tasks rejects sort order without a sort field", async () => {
     error: "Sort field is required when sort order is provided",
   });
 });
+
+test("GET /api/tasks returns default pagination metadata", async () => {
+  const response = await request(app).get("/api/tasks");
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.tasks.map((task) => task.id),
+    [1, 2, 3],
+  );
+
+  assert.deepEqual(response.body.pagination, {
+    page: 1,
+    limit: 10,
+    totalItems: 3,
+    totalPages: 1,
+  });
+});
+
+test("GET /api/tasks returns the first requested page", async () => {
+  const response = await request(app).get("/api/tasks").query({
+    page: "1",
+    limit: "2",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.tasks.map((task) => task.id),
+    [1, 2],
+  );
+
+  assert.deepEqual(response.body.pagination, {
+    page: 1,
+    limit: 2,
+    totalItems: 3,
+    totalPages: 2,
+  });
+});
+
+test("GET /api/tasks returns the second requested page", async () => {
+  const response = await request(app).get("/api/tasks").query({
+    page: "2",
+    limit: "2",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.tasks.map((task) => task.id),
+    [3],
+  );
+
+  assert.deepEqual(response.body.pagination, {
+    page: 2,
+    limit: 2,
+    totalItems: 3,
+    totalPages: 2,
+  });
+});
+
+test("GET /api/tasks applies filtering and sorting before pagination", async () => {
+  const response = await request(app).get("/api/tasks").query({
+    completed: "false",
+    sortBy: "title",
+    order: "desc",
+    page: "2",
+    limit: "1",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.tasks.map((task) => task.id),
+    [1],
+  );
+
+  assert.deepEqual(response.body.pagination, {
+    page: 2,
+    limit: 1,
+    totalItems: 2,
+    totalPages: 2,
+  });
+});
+
+test("GET /api/tasks returns an empty array for a page beyond the result", async () => {
+  const response = await request(app).get("/api/tasks").query({
+    page: "5",
+    limit: "2",
+  });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(response.body.tasks, []);
+
+  assert.deepEqual(response.body.pagination, {
+    page: 5,
+    limit: 2,
+    totalItems: 3,
+    totalPages: 2,
+  });
+});
+
+test("GET /api/tasks rejects an invalid page", async () => {
+  const response = await request(app).get("/api/tasks").query({
+    page: "0",
+  });
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Page must be a positive integer",
+  });
+});
+
+test("GET /api/tasks rejects multiple page values", async () => {
+  const response = await request(app).get("/api/tasks?page=1&page=2");
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Page must be a positive integer",
+  });
+});
+
+test("GET /api/tasks rejects an invalid limit", async () => {
+  const response = await request(app).get("/api/tasks").query({
+    limit: "0",
+  });
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Limit must be a positive integer",
+  });
+});
+
+test("GET /api/tasks rejects multiple limit values", async () => {
+  const response = await request(app).get("/api/tasks?limit=1&limit=2");
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Limit must be a positive integer",
+  });
+});
+
+test("GET /api/tasks rejects a limit above the maximum", async () => {
+  const response = await request(app).get("/api/tasks").query({
+    limit: "101",
+  });
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Limit must be 100 or less",
+  });
+});

@@ -2,6 +2,36 @@ const ALLOWED_COMPLETED_FILTERS = new Set(["true", "false"]);
 const ALLOWED_SORT_FIELDS = ["id", "title"];
 const ALLOWED_SORT_ORDERS = ["asc", "desc"];
 
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 10;
+const MAX_LIMIT = 100;
+
+const parsePositiveIntegerQuery = (value, fieldName) => {
+  if (value === undefined) {
+    return {
+      value: undefined,
+    };
+  }
+
+  if (typeof value !== "string") {
+    return {
+      error: `${fieldName} must be a positive integer`,
+    };
+  }
+
+  const parsedValue = Number(value);
+
+  if (!Number.isInteger(parsedValue) || parsedValue < 1) {
+    return {
+      error: `${fieldName} must be a positive integer`,
+    };
+  }
+
+  return {
+    value: parsedValue,
+  };
+};
+
 export const validateCreateTask = (req, res, next) => {
   const { title } = req.body;
 
@@ -119,9 +149,23 @@ const sendBadRequest = (res, error) =>
   });
 
 export const validateTaskQuery = (req, res, next) => {
-  const { completed, search, sortBy, order } = req.query;
+  const { completed, search, sortBy, order, page, limit } = req.query;
 
   const completedResult = parseCompletedFilter(completed);
+  const pageResult = parsePositiveIntegerQuery(page, "Page");
+  const limitResult = parsePositiveIntegerQuery(limit, "Limit");
+
+  if (pageResult.error) {
+    return sendBadRequest(res, pageResult.error);
+  }
+
+  if (limitResult.error) {
+    return sendBadRequest(res, limitResult.error);
+  }
+
+  if (limitResult.value > MAX_LIMIT) {
+    return sendBadRequest(res, `Limit must be ${MAX_LIMIT} or less`);
+  }
 
   if (completedResult.error) {
     return sendBadRequest(res, completedResult.error);
@@ -187,6 +231,8 @@ export const validateTaskQuery = (req, res, next) => {
     sortBy: sortByResult.value,
     order:
       sortByResult.value === undefined ? undefined : orderResult.value || "asc",
+    page: pageResult.value ?? DEFAULT_PAGE,
+    limit: limitResult.value ?? DEFAULT_LIMIT,
   };
 
   next();

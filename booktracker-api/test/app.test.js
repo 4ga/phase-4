@@ -551,3 +551,181 @@ test("GET /api/books sorting does not modify task collection order", async () =>
     [2, 6, 7, 1, 3, 4, 5],
   );
 });
+
+test("GET /api/books returns default pagination metadata", async () => {
+  const response = await request(app).get("/api/books");
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.books.map((book) => book.id),
+    [2, 6, 7, 1, 3, 4, 5],
+  );
+
+  assert.deepEqual(response.body.pagination, {
+    page: 1,
+    limit: 10,
+    totalItems: 7,
+    totalPages: 1,
+  });
+});
+
+test("GET /api/books returns the first requested page", async () => {
+  const response = await request(app).get("/api/books").query({
+    page: "1",
+    limit: "2",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.books.map((book) => book.id),
+    [2, 6],
+  );
+
+  assert.deepEqual(response.body.pagination, {
+    page: 1,
+    limit: 2,
+    totalItems: 7,
+    totalPages: 4,
+  });
+});
+
+test("GET /api/books returns the second requested page", async () => {
+  const response = await request(app).get("/api/books").query({
+    page: "2",
+    limit: "2",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.books.map((book) => book.id),
+    [7, 1],
+  );
+
+  assert.deepEqual(response.body.pagination, {
+    page: 2,
+    limit: 2,
+    totalItems: 7,
+    totalPages: 4,
+  });
+});
+
+test("GET /api/books applies filtering and sorting before pagination", async () => {
+  const response = await request(app).get("/api/books").query({
+    availability: "available",
+    sortBy: "title-asc",
+    page: "2",
+    limit: "1",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.books.map((book) => book.id),
+    [7],
+  );
+
+  assert.deepEqual(response.body.pagination, {
+    page: 2,
+    limit: 1,
+    totalItems: 4,
+    totalPages: 4,
+  });
+});
+
+test("GET /api/books paginates books", async () => {
+  const response = await request(app).get("/api/books").query({
+    page: "2",
+    limit: "3",
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.books.length, 3);
+
+  assert.deepEqual(response.body.pagination, {
+    page: 2,
+    limit: 3,
+    totalItems: 7,
+    totalPages: 3,
+  });
+});
+
+test("GET /api/books returns an empty array for a page beyond the result", async () => {
+  const response = await request(app).get("/api/books").query({
+    page: "5",
+    limit: "2",
+  });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(response.body.books, []);
+
+  assert.deepEqual(response.body.pagination, {
+    page: 5,
+    limit: 2,
+    totalItems: 7,
+    totalPages: 4,
+  });
+});
+
+test("GET /api/books rejects an invalid page", async () => {
+  const response = await request(app).get("/api/books").query({
+    page: "0",
+  });
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    success: false,
+    error: "Page must be a positive integer",
+  });
+});
+
+test("GET /api/books rejects multiple page filter values", async () => {
+  const response = await request(app).get("/api/books?page=2&page=3");
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    success: false,
+    error: "Page filter must be a string",
+  });
+});
+
+test("GET /api/books rejects multiple limit filter values", async () => {
+  const response = await request(app).get("/api/books?limit=2&limit=3");
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    success: false,
+    error: "Limit filter must be a string",
+  });
+});
+
+test("GET /api/books rejects an invalid limit", async () => {
+  const response = await request(app).get("/api/books").query({
+    limit: "0",
+  });
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    success: false,
+    error: "Limit must be a positive integer",
+  });
+});
+
+test("GET /api/books rejects a limit above the maximum", async () => {
+  const response = await request(app).get("/api/books").query({
+    limit: "101",
+  });
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    success: false,
+    error: "Limit cannot exceed 100",
+  });
+});
