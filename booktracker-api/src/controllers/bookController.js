@@ -1,120 +1,29 @@
-const initialBooks = [
-  {
-    id: 1,
-    title: "The Great Gatsby",
-    author: "F. Scott Fitzgerald",
-    publicationYear: 1925,
-    format: "book",
-    genre: "fiction",
-    audience: "adult",
-    availability: "available",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-  },
-  {
-    id: 2,
-    title: "Atomic Habits",
-    author: "James Clear",
-    publicationYear: 2018,
-    format: "audiobook",
-    genre: "information-science",
-    audience: "adult",
-    availability: "checked-out",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-  },
-  {
-    id: 3,
-    title: "The Hobbit",
-    author: "J.R.R. Tolkien",
-    publicationYear: 1937,
-    format: "e-book",
-    genre: "sci-fi-fantasy",
-    audience: "young-adult",
-    availability: "available",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-  },
-  {
-    id: 4,
-    title: "The Hunger Games",
-    author: "Suzanne Collins",
-    publicationYear: 2008,
-    format: "book",
-    genre: "sci-fi-fantasy",
-    audience: "young-adult",
-    availability: "on-hold",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-  },
-  {
-    id: 5,
-    title: "I Know Why the Caged Bird Sings",
-    author: "Maya Angelou",
-    publicationYear: 1969,
-    format: "book",
-    genre: "biography-history",
-    audience: "adult",
-    availability: "on-hold",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-  },
-  {
-    id: 6,
-    title: "The Cat in the Hat",
-    author: "Dr. Seuss",
-    publicationYear: 1957,
-    format: "book",
-    genre: "childrens-picture-book",
-    audience: "children",
-    availability: "available",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-  },
-  {
-    id: 7,
-    title: "Gone Girl",
-    author: "Gillian Flynn",
-    publicationYear: 2012,
-    format: "e-book",
-    genre: "mystery-thriller",
-    audience: "adult",
-    availability: "available",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-  },
-];
-
-const createInitialBooks = () => initialBooks.map((book) => ({ ...book }));
-const books = createInitialBooks();
-
-const calculateNextBookId = () =>
-  books.reduce((highestId, book) => Math.max(highestId, book.id), 0) + 1;
-
-let nextBookId = calculateNextBookId();
-
-export const resetBooks = () => {
-  books.splice(0, books.length, ...createInitialBooks());
-  nextBookId = calculateNextBookId();
-};
+import {
+  createBookRecord,
+  deleteTaskRecord,
+  getAllBooks,
+  getBookById,
+  updateBookRecord,
+} from "../data/bookStore.js";
 
 export const findBookById = (req, res, next) => {
-  const bookIndex = books.findIndex((book) => book.id === req.bookId);
+  const book = getBookById(req.bookId);
 
-  if (bookIndex === -1) {
+  if (!book) {
     return res.status(404).json({
       success: false,
       error: "Book not found",
     });
   }
 
-  req.bookIndex = bookIndex;
-  req.book = books[bookIndex];
+  req.book = book;
 
   next();
 };
 
 export const listBooks = (req, res) => {
+  const books = getAllBooks();
+
   let filteredBooks = [...books];
 
   if (req.bookFilters.searchTerm) {
@@ -199,37 +108,9 @@ export const getBook = (req, res) => {
 };
 
 export const createBook = (req, res) => {
-  const {
-    title,
-    author,
-    publicationYear,
-    format,
-    genre,
-    audience,
-    availability,
-  } = req.body;
+  const book = createBookRecord({ ...req.body });
 
-  const timestamp = Date.now();
-
-  const newBook = {
-    id: nextBookId,
-    title,
-    author,
-    publicationYear: Number(publicationYear),
-    format,
-    genre,
-    audience,
-    availability,
-    createdAt: timestamp,
-    updatedAt: timestamp,
-  };
-
-  nextBookId += 1;
-  books.push(newBook);
-
-  const { createdAt, updatedAt, ...bookWithoutTimestamps } = newBook;
-
-  res.status(201).json({ success: true, book: bookWithoutTimestamps });
+  res.status(201).json({ success: true, book });
 };
 
 export const updateBook = (req, res) => {
@@ -239,20 +120,15 @@ export const updateBook = (req, res) => {
     updates.publicationYear = Number(updates.publicationYear);
   }
 
-  books[req.bookIndex] = {
-    ...books[req.bookIndex],
-    ...updates,
-    updatedAt: Date.now(),
-  };
+  updates.updatedAt = Date.now();
 
-  const { createdAt, updatedAt, ...bookWithoutTimestamps } =
-    books[req.bookIndex];
+  const book = updateBookRecord(req.bookId, updates);
 
-  return res.json({ success: true, book: bookWithoutTimestamps });
+  return res.json({ success: true, book });
 };
 
 export const deleteBook = (req, res) => {
-  books.splice(req.bookIndex, 1);
+  deleteTaskRecord(req.bookId);
 
   res.status(204).send();
 };

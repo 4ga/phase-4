@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import request from "supertest";
 
 import app from "../src/app.js";
-import { resetBooks } from "../src/controllers/bookController.js";
+import { resetBooks } from "../src/data/bookStore.js";
 
 beforeEach(() => {
   resetBooks();

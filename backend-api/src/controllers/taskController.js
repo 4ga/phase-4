@@ -1,26 +1,10 @@
-const initialTasks = [
-  { id: 1, title: "Learn HTTP basics", completed: false },
-  { id: 2, title: "Practice Express routes", completed: false },
-  {
-    id: 3,
-    title: "Connect backend concepts to frontend apps",
-    completed: true,
-  },
-];
-
-const createInitialTasks = () => initialTasks.map((task) => ({ ...task }));
-
-const tasks = createInitialTasks();
-
-const calculateNextTaskId = () =>
-  tasks.reduce((highestId, task) => Math.max(highestId, task.id), 0) + 1;
-
-let nextTaskId = calculateNextTaskId();
-
-export const resetTasks = () => {
-  tasks.splice(0, tasks.length, ...createInitialTasks());
-  nextTaskId = calculateNextTaskId();
-};
+import {
+  createTaskRecord,
+  deleteTaskRecord,
+  getAllTasks,
+  getTaskById,
+  updateTaskRecord,
+} from "../data/taskStore.js";
 
 const compareTasks = (firstTask, secondTask, sortBy) => {
   if (sortBy === "id") {
@@ -31,19 +15,19 @@ const compareTasks = (firstTask, secondTask, sortBy) => {
 };
 
 export const findTaskById = (req, res, next) => {
-  const taskIndex = tasks.findIndex((task) => task.id === req.taskId);
+  const task = getTaskById(req.taskId);
 
-  if (taskIndex === -1) {
+  if (!task) {
     return res.status(404).json({ error: "Task not found" });
   }
 
-  req.task = tasks[taskIndex];
-  req.taskIndex = taskIndex;
+  req.task = task;
 
   next();
 };
 
 export const listTasks = (req, res) => {
+  const tasks = getAllTasks();
   const { completed, search, sortBy, order, page, limit } = req.taskFilters;
 
   let filteredTasks = tasks;
@@ -91,35 +75,28 @@ export const getTask = (req, res) => {
 };
 
 export const createTask = (req, res) => {
-  const { title } = req.body;
+  const task = createTaskRecord({ title: req.body.title });
 
-  const newTask = {
-    id: nextTaskId,
-    title,
-    completed: false,
-  };
-
-  nextTaskId += 1;
-  tasks.push(newTask);
-
-  res.status(201).json({ task: newTask });
+  res.status(201).json({ task });
 };
 
 export const updateTask = (req, res) => {
-  const { title, completed } = req.body;
+  const updates = {};
 
-  if (title !== undefined) {
-    req.task.title = title.trim();
+  if (req.body.title !== undefined) {
+    updates.title = req.body.title;
   }
-  if (completed !== undefined) {
-    req.task.completed = completed;
+  if (req.body.completed !== undefined) {
+    updates.completed = req.body.completed;
   }
 
-  res.json({ task: req.task });
+  const task = updateTaskRecord(req.taskId, updates);
+
+  res.json({ task });
 };
 
 export const deleteTask = (req, res) => {
-  tasks.splice(req.taskIndex, 1);
+  deleteTaskRecord(req.taskId);
 
   res.status(204).send();
 };

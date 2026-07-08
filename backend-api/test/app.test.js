@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import request from "supertest";
 
 import app from "../src/app.js";
-import { resetTasks } from "../src/controllers/taskController.js";
+import { resetTasks } from "../src/data/taskStore.js";
 
 beforeEach(() => {
   resetTasks();
