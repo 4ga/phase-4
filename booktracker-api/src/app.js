@@ -5,8 +5,13 @@ const app = express();
 
 app.use(express.json());
 
+const shouldLogRequests = () => process.env.NODE_ENV !== "test";
+
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.originalUrl}`);
+  if (shouldLogRequests()) {
+    console.log(`${req.method} ${req.originalUrl}`);
+  }
+
   next();
 });
 

@@ -9,6 +9,10 @@ beforeEach(() => {
   resetTasks();
 });
 
+test("test suite runs with NODE_ENV set to test", () => {
+  assert.equal(process.env.NODE_ENV, "test");
+});
+
 test("GET / returns the root API message", async () => {
   const response = await request(app).get("/");
 
