@@ -48,7 +48,7 @@ const parsePositiveIntegerQuery = (value, fieldName) => {
 };
 
 export const validateCreateTask = (req, res, next) => {
-  const { title } = req.body;
+  const { title } = getRequestBody(req);
 
   if (title === undefined || title === null) {
     return res.status(400).json({
@@ -76,7 +76,8 @@ export const validateCreateTask = (req, res, next) => {
 };
 
 export const validateUpdateTask = (req, res, next) => {
-  const { title, completed } = req.body;
+  const body = getRequestBody(req);
+  const { title, completed } = body;
 
   if (title === undefined && completed === undefined) {
     return res.status(400).json({
@@ -99,7 +100,8 @@ export const validateUpdateTask = (req, res, next) => {
       });
     }
 
-    req.body.title = trimmedTitle;
+    body.title = trimmedTitle;
+    req.body = body;
   }
 
   if (completed !== undefined && typeof completed !== "boolean") {
@@ -251,4 +253,16 @@ export const validateTaskQuery = (req, res, next) => {
   };
 
   next();
+};
+
+const getRequestBody = (req) => {
+  if (
+    req.body === null ||
+    req.body === undefined ||
+    typeof req.body !== "object" ||
+    Array.isArray(req.body)
+  ) {
+    return {};
+  }
+  return req.body;
 };

@@ -306,4 +306,21 @@ const validateBookQuery = (req, res, next) => {
   next();
 };
 
-export { normalizeBookBody, validateBookBody, validateBookQuery };
+const getRequestBody = (req) => {
+  if (
+    req.body === null ||
+    req.body === undefined ||
+    typeof req.body !== "object" ||
+    Array.isArray(req.body)
+  ) {
+    return {};
+  }
+  return req.body;
+};
+
+export {
+  normalizeBookBody,
+  validateBookBody,
+  validateBookQuery,
+  getRequestBody,
+};

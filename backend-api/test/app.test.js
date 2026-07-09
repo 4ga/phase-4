@@ -757,3 +757,49 @@ test("DELETE /api/tasks/:id returns 400 for a negative task ID", async () => {
     error: "Task id must be a positive integer",
   });
 });
+
+test("POST /api/tasks returns 400 when the request body is missing", async () => {
+  const response = await request(app).post("/api/tasks");
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Title is required",
+  });
+});
+
+test("POST /api/tasks returns 400 for a non-JSON request body", async () => {
+  const response = await request(app)
+    .post("/api/tasks")
+    .set("Content-Type", "text/plain")
+    .send("title=Not JSON");
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "Title is required",
+  });
+});
+
+test("PATCH /api/tasks/:id returns 400 when the request body is missing", async () => {
+  const response = await request(app).patch("/api/tasks/1");
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "At least one field is required",
+  });
+});
+
+test("PATCH /api/tasks/:id returns 400 for a non-JSON request body", async () => {
+  const response = await request(app)
+    .patch("/api/tasks/1")
+    .set("Content-Type", "text/plain")
+    .send("completed=true");
+
+  assert.equal(response.status, 400);
+
+  assert.deepEqual(response.body, {
+    error: "At least one field is required",
+  });
+});

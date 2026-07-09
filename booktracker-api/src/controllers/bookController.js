@@ -5,6 +5,7 @@ import {
   getBookById,
   updateBookRecord,
 } from "../data/bookStore.js";
+import { getRequestBody } from "../middleware/bookValidation.js";
 
 export const findBookById = (req, res, next) => {
   const book = getBookById(req.bookId);
@@ -108,14 +109,16 @@ export const getBook = (req, res) => {
 };
 
 export const createBook = (req, res) => {
-  const book = createBookRecord({ ...req.body });
+  const body = getRequestBody(req);
+  const book = createBookRecord({ ...body });
 
   const { createdAt, updatedAt, ...bookWithoutTimestamps } = book;
   res.status(201).json({ success: true, book: bookWithoutTimestamps });
 };
 
 export const updateBook = (req, res) => {
-  const updates = { ...req.body };
+  const body = getRequestBody(req);
+  const updates = { ...body };
 
   if (updates.publicationYear !== undefined) {
     updates.publicationYear = Number(updates.publicationYear);
