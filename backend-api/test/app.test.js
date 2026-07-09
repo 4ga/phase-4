@@ -9,6 +9,43 @@ beforeEach(() => {
   resetTasks();
 });
 
+test("GET / returns the root API message", async () => {
+  const response = await request(app).get("/");
+
+  assert.equal(response.status, 200);
+  assert.match(response.headers["content-type"], /text/);
+  assert.equal(response.text, "Phase 4 Backend API is running");
+});
+
+test("GET /api/info returns application metadata", async () => {
+  const response = await request(app).get("/api/info");
+
+  assert.equal(response.status, 200);
+  assert.match(response.headers["content-type"], /json/);
+
+  assert.deepEqual(response.body, {
+    app: "Phase 4 Backend API",
+    version: "1.0.0",
+    phase: 4,
+    milestone: 103,
+    message: "Learning HTTP request and response fundamentals",
+  });
+});
+
+test("malformed JSON request bodies return a JSON 400 response", async () => {
+  const response = await request(app)
+    .post("/api/tasks")
+    .set("Content-Type", "application/json")
+    .send('{"title":"Broken JSON"');
+
+  assert.equal(response.status, 400);
+  assert.match(response.headers["content-type"], /json/);
+
+  assert.deepEqual(response.body, {
+    error: "Invalid JSON body",
+  });
+});
+
 test("GET /health returns API health information", async () => {
   const response = await request(app).get("/health");
 
