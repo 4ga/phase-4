@@ -1,6 +1,6 @@
 import {
   createBookRecord,
-  deleteTaskRecord,
+  deleteBookRecord,
   getAllBooks,
   getBookById,
   updateBookRecord,
@@ -110,7 +110,8 @@ export const getBook = (req, res) => {
 export const createBook = (req, res) => {
   const book = createBookRecord({ ...req.body });
 
-  res.status(201).json({ success: true, book });
+  const { createdAt, updatedAt, ...bookWithoutTimestamps } = book;
+  res.status(201).json({ success: true, book: bookWithoutTimestamps });
 };
 
 export const updateBook = (req, res) => {
@@ -120,15 +121,17 @@ export const updateBook = (req, res) => {
     updates.publicationYear = Number(updates.publicationYear);
   }
 
-  updates.updatedAt = Date.now();
+  updates.updatedAt = new Date();
 
   const book = updateBookRecord(req.bookId, updates);
 
-  return res.json({ success: true, book });
+  const { updatedAt, createdAt, ...bookWithoutTimestamps } = book;
+
+  return res.json({ success: true, book: bookWithoutTimestamps });
 };
 
 export const deleteBook = (req, res) => {
-  deleteTaskRecord(req.bookId);
+  deleteBookRecord(req.bookId);
 
   res.status(204).send();
 };

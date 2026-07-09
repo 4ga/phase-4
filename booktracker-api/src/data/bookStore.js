@@ -1,3 +1,5 @@
+const timestamp = new Date("2026-07-04T12:00:00.000Z");
+
 const initialBooks = [
   {
     id: 1,
@@ -8,8 +10,8 @@ const initialBooks = [
     genre: "fiction",
     audience: "adult",
     availability: "available",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    createdAt: timestamp,
+    updatedAt: timestamp,
   },
   {
     id: 2,
@@ -20,8 +22,8 @@ const initialBooks = [
     genre: "information-science",
     audience: "adult",
     availability: "checked-out",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    createdAt: timestamp,
+    updatedAt: timestamp,
   },
   {
     id: 3,
@@ -32,8 +34,8 @@ const initialBooks = [
     genre: "sci-fi-fantasy",
     audience: "young-adult",
     availability: "available",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    createdAt: timestamp,
+    updatedAt: timestamp,
   },
   {
     id: 4,
@@ -44,8 +46,8 @@ const initialBooks = [
     genre: "sci-fi-fantasy",
     audience: "young-adult",
     availability: "on-hold",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    createdAt: timestamp,
+    updatedAt: timestamp,
   },
   {
     id: 5,
@@ -56,8 +58,8 @@ const initialBooks = [
     genre: "biography-history",
     audience: "adult",
     availability: "on-hold",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    createdAt: timestamp,
+    updatedAt: timestamp,
   },
   {
     id: 6,
@@ -68,8 +70,8 @@ const initialBooks = [
     genre: "childrens-picture-book",
     audience: "children",
     availability: "available",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    createdAt: timestamp,
+    updatedAt: timestamp,
   },
   {
     id: 7,
@@ -80,8 +82,8 @@ const initialBooks = [
     genre: "mystery-thriller",
     audience: "adult",
     availability: "available",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    createdAt: timestamp,
+    updatedAt: timestamp,
   },
 ];
 
@@ -117,7 +119,7 @@ export const createBookRecord = ({
   audience,
   availability,
 }) => {
-  const timestamp = Date.now();
+  const now = new Date();
 
   const newBook = {
     id: nextBookId,
@@ -128,16 +130,15 @@ export const createBookRecord = ({
     genre,
     audience,
     availability,
-    createdAt: timestamp,
-    updatedAt: timestamp,
+    createdAt: now,
+    updatedAt: now,
   };
 
   nextBookId += 1;
 
   books.push(newBook);
 
-  const { createdAt, updatedAt, ...bookWithoutTimestamps } = newBook;
-  return cloneBook(bookWithoutTimestamps);
+  return cloneBook(newBook);
 };
 
 export const updateBookRecord = (bookId, updates) => {
@@ -145,14 +146,12 @@ export const updateBookRecord = (bookId, updates) => {
   if (bookIndex === -1) {
     return undefined;
   }
-  books[bookIndex] = { ...books[bookIndex], ...updates };
+  books[bookIndex] = { ...books[bookIndex], ...updates, updatedAt: new Date() };
 
-  const { createdAt, updatedAt, ...bookWithoutTimestamps } = books[bookIndex];
-
-  return cloneBook(bookWithoutTimestamps);
+  return cloneBook(books[bookIndex]);
 };
 
-export const deleteTaskRecord = (bookId) => {
+export const deleteBookRecord = (bookId) => {
   const bookIndex = books.findIndex((book) => book.id === bookId);
 
   if (bookIndex === -1) {

@@ -522,7 +522,7 @@ test("GET /api/books rejects an invalid sort field", async () => {
   });
 });
 
-test("GET /api/books rejects multiple search filter values", async () => {
+test("GET /api/books rejects multiple sortBy filter values", async () => {
   const response = await request(app).get(
     "/api/books?sortBy=http&sortBy=express",
   );
