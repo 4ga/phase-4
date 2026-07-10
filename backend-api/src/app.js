@@ -1,5 +1,7 @@
 import express from "express";
 import { requestLogger } from "./middleware/requestLogger.js";
+import { errorHandler } from "./middleware/errorHandler.js";
+import { notFoundHandler } from "./middleware/notFoundHandler.js";
 import taskRouter from "./routes/taskRoutes.js";
 
 const app = express();
@@ -27,28 +29,8 @@ app.get("/api/info", (req, res) => {
 
 app.use("/api/tasks", taskRouter);
 
-app.use((req, res) => {
-  res.status(404).json({
-    error: "Route not found",
-    method: req.method,
-    path: req.originalUrl,
-  });
-});
+app.use(notFoundHandler);
 
-app.use((error, req, res, next) => {
-  console.error(error);
-
-  if (res.headersSent) {
-    return next(error);
-  }
-
-  if (error instanceof SyntaxError && error.status === 400) {
-    return res.status(400).json({
-      error: "Invalid JSON body",
-    });
-  }
-
-  res.status(500).json({ error: "Internal server error" });
-});
+app.use(errorHandler);
 
 export default app;
