@@ -1,19 +1,11 @@
 import express from "express";
+import { requestLogger } from "./middleware/requestLogger.js";
 import taskRouter from "./routes/taskRoutes.js";
 
 const app = express();
 
 app.use(express.json());
-
-const shouldLogRequests = () => process.env.NODE_ENV !== "test";
-
-app.use((req, res, next) => {
-  if (shouldLogRequests()) {
-    console.log(`${req.method} ${req.originalUrl}`);
-  }
-
-  next();
-});
+app.use(requestLogger);
 
 app.get("/", (req, res) => {
   res.send("Phase 4 Backend API is running");
