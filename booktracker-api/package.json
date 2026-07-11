@@ -15,7 +15,9 @@
   "scripts": {
     "start": "nodemon src/server.js",
     "dev": "nodemon --env-file=.env src/server.js",
-    "test": "node --import ./test/setup/setTestEnv.js --test"
+    "test": "node --import ./test/setup/setTestEnv.js --test",
+    "check:syntax": "node ./scripts/checkSyntax.js",
+    "check": "npm run check:syntax && npm test"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
