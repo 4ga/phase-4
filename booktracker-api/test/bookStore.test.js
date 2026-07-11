@@ -46,7 +46,7 @@ test("getBookById returns a copy of the requested book", () => {
     title: "The Great Gatsby",
     author: "F. Scott Fitzgerald",
     publicationYear: 1925,
-    format: "book",
+    format: "hardcover",
     genre: "fiction",
     audience: "adult",
     availability: "available",

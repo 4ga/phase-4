@@ -82,7 +82,7 @@ test("GET /api/books/:id returns the requested book", async () => {
       title: "The Great Gatsby",
       author: "F. Scott Fitzgerald",
       publicationYear: 1925,
-      format: "book",
+      format: "hardcover",
       genre: "fiction",
       audience: "adult",
       availability: "available",
@@ -116,8 +116,8 @@ test("POST /api/books creates a new book", async () => {
     title: "The JavaScript Journey",
     author: "Jane Coder",
     publicationYear: 2025,
-    format: "e-book",
-    genre: "Information & Science",
+    format: "ebook",
+    genre: "sci-fi",
     audience: "adult",
     availability: "available",
   });
@@ -131,8 +131,8 @@ test("POST /api/books creates a new book", async () => {
       title: "The JavaScript Journey",
       author: "Jane Coder",
       publicationYear: 2025,
-      format: "e-book",
-      genre: "Information & Science",
+      format: "ebook",
+      genre: "sci-fi",
       audience: "adult",
       availability: "available",
     },
@@ -149,8 +149,8 @@ test("POST /api/books trims the book title", async () => {
     title: "       The JavaScript Journey       ",
     author: "Jane Coder",
     publicationYear: 2025,
-    format: "e-book",
-    genre: "Information & Science",
+    format: "ebook",
+    genre: "sci-fi",
     audience: "adult",
     availability: "available",
   });
@@ -164,8 +164,8 @@ test("POST /api/books trims the book title", async () => {
       title: "The JavaScript Journey",
       author: "Jane Coder",
       publicationYear: 2025,
-      format: "e-book",
-      genre: "Information & Science",
+      format: "ebook",
+      genre: "sci-fi",
       audience: "adult",
       availability: "available",
     },
@@ -182,7 +182,7 @@ test("POST /api/books returns 400 when title is missing", async () => {
     author: "Jane Coder",
     publicationYear: 2025,
     format: "e-book",
-    genre: "Information & Science",
+    genre: "sci-fi",
     audience: "adult",
     availability: "available",
   });
@@ -199,8 +199,8 @@ test("POST /api/books returns 400 when title is blank", async () => {
     title: "   ",
     author: "Jane Coder",
     publicationYear: 2025,
-    format: "e-book",
-    genre: "Information & Science",
+    format: "ebook",
+    genre: "sci-fi",
     audience: "adult",
     availability: "available",
   });
@@ -217,8 +217,8 @@ test("POST /api/books returns 400 when title is not a string", async () => {
     title: 123,
     author: "Jane Coder",
     publicationYear: 2025,
-    format: "e-book",
-    genre: "Information & Science",
+    format: "ebook",
+    genre: "sci-fi",
     audience: "adult",
     availability: "available",
   });
@@ -244,7 +244,7 @@ test("PATCH /api/books/:id updates the task title", async () => {
       title: "The Great Gatsby & Friends",
       author: "F. Scott Fitzgerald",
       publicationYear: 1925,
-      format: "book",
+      format: "hardcover",
       genre: "fiction",
       audience: "adult",
       availability: "available",
@@ -260,7 +260,7 @@ test("PATCH /api/books/:id updates the task title", async () => {
 test("PATCH /api/books/:id updates availability status", async () => {
   const response = await request(app)
     .patch("/api/books/1")
-    .send({ availability: "Checked Out" });
+    .send({ availability: "checked-out" });
 
   assert.equal(response.status, 200);
   assert.deepEqual(response.body, {
@@ -270,10 +270,10 @@ test("PATCH /api/books/:id updates availability status", async () => {
       title: "The Great Gatsby",
       author: "F. Scott Fitzgerald",
       publicationYear: 1925,
-      format: "book",
+      format: "hardcover",
       genre: "fiction",
       audience: "adult",
-      availability: "Checked Out",
+      availability: "checked-out",
     },
   });
 });
@@ -281,7 +281,7 @@ test("PATCH /api/books/:id updates availability status", async () => {
 test("PATCH /api/books/:id updates title and availability together", async () => {
   const response = await request(app).patch("/api/books/1").send({
     title: "The Great Gatsby & Friends ",
-    availability: "Checked Out",
+    availability: "checked-out",
   });
 
   assert.equal(response.status, 200);
@@ -292,10 +292,10 @@ test("PATCH /api/books/:id updates title and availability together", async () =>
       title: "The Great Gatsby & Friends",
       author: "F. Scott Fitzgerald",
       publicationYear: 1925,
-      format: "book",
+      format: "hardcover",
       genre: "fiction",
       audience: "adult",
-      availability: "Checked Out",
+      availability: "checked-out",
     },
   });
 });

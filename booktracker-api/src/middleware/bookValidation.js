@@ -249,18 +249,26 @@ const validateBookQuery = (req, res, next) => {
     {
       value: normalizedFilters.genre,
       allowedValues: [
-        "fiction",
-        "sci-fi-fantasy",
-        "mystery-thriller",
-        "biography-history",
-        "information-science",
-        "childrens-picture-book",
+        "fantasy",
+        "science",
+        "mystery",
+        "romance",
+        "historical-fiction",
+        "horror",
+        "biography",
+        "memoir",
+        "self-help",
+        "true-crime",
+        "history",
+        "poetry",
+        "drama",
+        "how-to",
       ],
       error: "Invalid genre filter",
     },
     {
       value: normalizedFilters.format,
-      allowedValues: ["book", "e-book", "audiobook", "video"],
+      allowedValues: ["hardcover", "ebook", "audiobook", "paperback"],
       error: "Invalid format filter",
     },
     {
@@ -270,7 +278,7 @@ const validateBookQuery = (req, res, next) => {
     },
     {
       value: normalizedFilters.availability,
-      allowedValues: ["available", "checked-out", "on-hold"],
+      allowedValues: ["available", "checked-out", "library-use-only"],
       error: "Invalid availability filter",
     },
     {
