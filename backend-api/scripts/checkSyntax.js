@@ -22,11 +22,11 @@ function collectJavaScriptFiles(directory) {
   });
 }
 
-const JavaScriptFiles = directoriesToCheck.flatMap(collectJavaScriptFiles);
+const javaScriptFiles = directoriesToCheck.flatMap(collectJavaScriptFiles);
 
 let hasSyntaxError = false;
 
-for (const filePath of JavaScriptFiles) {
+for (const filePath of javaScriptFiles) {
   const result = spawnSync(process.execPath, ["--check", filePath], {
     stdio: "inherit",
   });
@@ -40,5 +40,5 @@ if (hasSyntaxError) {
   console.error("Syntax check failed.");
   process.exitCode = 1;
 } else {
-  console.log(`Syntax check passed for ${JavaScriptFiles.length} files.`);
+  console.log(`Syntax check passed for ${javaScriptFiles.length} files.`);
 }
