@@ -1,27 +1,39 @@
 name: Quality Checks
 
-on: 
-  push: 
+on:
+  push:
   pull_request:
   workflow_dispatch:
 
-permissions: 
+permissions:
   contents: read
 
-jobs: 
-  quality: 
-    name: Syntax and Tests
+jobs:
+  quality:
+    name: ${{matrix.project}} Syntax and Tests
     runs-on: ubuntu-latest
 
-    steps: 
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - backend-api
+          - booktracker-api
+
+    defaults:
+      run:
+        working-directory: ${{matrix.project}}
+
+    steps:
       - name: Check out repository
         uses: actions/checkout@v7
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
-        with: 
+        with:
           node-version: 24
-          cache: npm 
+          cache: npm
+          cache-dependency-path: ${{matrix.project}}/package-lock.json
 
       - name: Install dependencies
         run: npm ci
