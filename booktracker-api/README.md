@@ -221,6 +221,20 @@ Expected:
 78 tests passing
 ```
 
+### Test coverage
+
+Run the test suite with Node's built-in coverage reporting:
+
+```bash
+npm run test:coverage
+```
+
+Run all local quality checks:
+
+```bash
+npm run check
+```
+
 ### Storage
 
 This project currently uses an in-memory book store.

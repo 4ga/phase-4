@@ -120,12 +120,6 @@ export const updateBook = (req, res) => {
   const body = getRequestBody(req);
   const updates = { ...body };
 
-  if (updates.publicationYear !== undefined) {
-    updates.publicationYear = Number(updates.publicationYear);
-  }
-
-  updates.updatedAt = new Date();
-
   const book = updateBookRecord(req.bookId, updates);
 
   const { updatedAt, createdAt, ...bookWithoutTimestamps } = book;

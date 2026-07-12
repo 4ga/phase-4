@@ -181,7 +181,7 @@ test("POST /api/books returns 400 when title is missing", async () => {
   const response = await request(app).post("/api/books").send({
     author: "Jane Coder",
     publicationYear: 2025,
-    format: "e-book",
+    format: "ebook",
     genre: "sci-fi",
     audience: "adult",
     availability: "available",
@@ -191,6 +191,23 @@ test("POST /api/books returns 400 when title is missing", async () => {
   assert.deepEqual(response.body, {
     success: false,
     error: "Title is required",
+  });
+});
+
+test("PATCH /api/books returns 400 when publication year is missing", async () => {
+  const response = await request(app).post("/api/books").send({
+    title: "The JavaScript Journey",
+    author: "Jane Coder",
+    format: "ebook",
+    genre: "sci-fi",
+    audience: "adult",
+    availability: "available",
+  });
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(response.body, {
+    success: false,
+    error: "Publication year is required",
   });
 });
 
@@ -463,6 +480,90 @@ test("GET /api/books combines availability and search filters", async () => {
   assert.deepEqual(
     response.body.books.map((book) => book.id),
     [1],
+  );
+});
+
+test("GET /api/books combines genre filters", async () => {
+  const response = await request(app).get("/api/books").query({
+    genre: "fiction",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.books.map((book) => book.id),
+    [6, 1],
+  );
+});
+
+test("GET /api/books combines format filters", async () => {
+  const response = await request(app).get("/api/books").query({
+    format: "ebook",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.books.map((book) => book.id),
+    [7, 3],
+  );
+});
+
+test("GET /api/books combines format, sortBy  and audience filters", async () => {
+  const response = await request(app).get("/api/books").query({
+    format: "hardcover",
+    audience: "adult",
+    sortBy: "author-asc",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.books.map((book) => book.id),
+    [1],
+  );
+});
+
+test("GET /api/books combines format, sortBy  and audience filters", async () => {
+  const response = await request(app).get("/api/books").query({
+    format: "hardcover",
+    audience: "young-adult",
+    sortBy: "year-asc",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.books.map((book) => book.id),
+    [4],
+  );
+});
+
+test("GET /api/books combines format, sortBy filters", async () => {
+  const response = await request(app).get("/api/books").query({
+    format: "hardcover",
+    sortBy: "year-desc",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.books.map((book) => book.id),
+    [4, 1],
+  );
+});
+
+test("GET /api/books combines format, sortBy filters", async () => {
+  const response = await request(app).get("/api/books").query({
+    format: "hardcover",
+    sortBy: "author-desc",
+  });
+
+  assert.equal(response.status, 200);
+
+  assert.deepEqual(
+    response.body.books.map((book) => book.id),
+    [4, 1],
   );
 });
 

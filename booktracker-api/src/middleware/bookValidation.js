@@ -249,6 +249,7 @@ const validateBookQuery = (req, res, next) => {
     {
       value: normalizedFilters.genre,
       allowedValues: [
+        "fiction",
         "fantasy",
         "science",
         "mystery",

@@ -16,8 +16,9 @@
     "start": "nodemon src/server.js",
     "dev": "nodemon --env-file=.env src/server.js",
     "test": "node --import ./test/setup/setTestEnv.js --test",
+    "test:coverage": "node --import ./test/setup/setTestEnv.js --test --experimental-test-coverage --test-coverage-include=\"src/**/*.js\"",
     "check:syntax": "node ./scripts/checkSyntax.js",
-    "check": "npm run check:syntax && npm test"
+    "check": "npm run check:syntax && npm run test:coverage"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
