@@ -20,7 +20,9 @@
     "test:coverage:check": "node --import ./test/setup/setTestEnv.js --test --experimental-test-coverage --test-coverage-include=\"src/**/*.js\" --test-coverage-lines=95 --test-coverage-branches=95 --test-coverage-functions=90",
     "check:syntax": "node ./scripts/checkSyntax.js",
     "lint": "eslint src test scripts eslint.config.js",
-    "check": "npm run check:syntax && npm run lint && npm run test:coverage:check"
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "check": "npm run check:syntax && npm run format:check && npm run lint && npm run test:coverage:check"
   },
   "dependencies": {
     "dotenv": "^17.4.2",
@@ -31,6 +33,7 @@
     "eslint": "^10.7.0",
     "globals": "^17.7.0",
     "nodemon": "^3.1.14",
+    "prettier": "3.9.5",
     "supertest": "^7.2.2"
   }
 }

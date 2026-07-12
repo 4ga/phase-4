@@ -19,12 +19,12 @@
 ## Project Structure
 
 src/
-  middleware/
-    taskValidation.js
-  routes/
-    taskRoutes.js
-  app.js
-  server.js
+middleware/
+taskValidation.js
+routes/
+taskRoutes.js
+app.js
+server.js
 
 ## Middleware Responsibilities
 

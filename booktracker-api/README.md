@@ -253,11 +253,13 @@ npm run test:coverage:check
 Commands:
 
 - `npm test` runs the normal test suite.
-- `npm run check:syntax` checks whether Node can parse the JavaScript files.
-- `npm run lint` performs static code analysis with ESLint.
-- `npm run test:coverage` displays test coverage.
+- `npm run check:syntax` verifies JavaScript syntax.
+- `npm run format:check` verifies formatting without modifying files.
+- `npm run format` rewrites files using Prettier.
+- `npm run lint` performs static code analysis.
+- `npm run test:coverage` reports coverage.
 - `npm run test:coverage:check` enforces coverage thresholds.
-- `npm run check` runs the complete local quality gate.
+- `npm run check` runs the complete non-mutating quality gate.
 
 ### Static analysis
 
@@ -280,6 +282,14 @@ That means:
 - The store returns copies to protect internal state.
 
 Persistent database storage will be added later.
+
+### Code formatting
+
+Check whether project files follow the configured Prettier format:
+
+```bash
+npm run format:check
+```
 
 ### Learning Focus
 
