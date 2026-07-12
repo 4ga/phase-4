@@ -181,16 +181,6 @@ const normalizeQueryValue = (value) => {
   return value.trim().replace(/\s+/g, " ").toLowerCase();
 };
 
-const validateSearchTerm = (searchTerm) => {
-  if (searchTerm === undefined) {
-    return null;
-  }
-  if (typeof searchTerm !== "string") {
-    return "Search filter must be a string";
-  }
-  return null;
-};
-
 const validateAllowedQueryValue = (value, allowedValues, error) => {
   if (value === undefined) {
     return null;

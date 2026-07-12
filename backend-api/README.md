@@ -251,9 +251,20 @@ npm run test:coverage:check
 Commands:
 
 - `npm test` runs the normal test suite.
-- `npm run test:coverage` displays coverage without enforcing thresholds.
-- `npm run test:coverage:check` enforces the minimum coverage requirements.
-- `npm run check` runs syntax checking and threshold-enforced tests.
+- `npm run check:syntax` checks whether Node can parse the JavaScript files.
+- `npm run lint` performs static code analysis with ESLint.
+- `npm run test:coverage` displays test coverage.
+- `npm run test:coverage:check` enforces coverage thresholds.
+- `npm run check` runs the complete local quality gate.
+
+### Static analysis
+
+Run ESLint against the application, tests, project scripts, and ESLint
+configuration:
+
+```bash
+npm run lint
+```
 
 ### Storage
 
