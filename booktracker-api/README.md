@@ -250,6 +250,13 @@ coverage requirements:
 npm run test:coverage:check
 ```
 
+Commands:
+
+- `npm test` runs the normal test suite.
+- `npm run test:coverage` displays coverage without enforcing thresholds.
+- `npm run test:coverage:check` enforces the minimum coverage requirements.
+- `npm run check` runs syntax checking and threshold-enforced tests.
+
 ### Storage
 
 This project currently uses an in-memory book store.
