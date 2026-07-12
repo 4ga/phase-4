@@ -233,6 +233,28 @@ Run all local quality checks:
 npm run check
 ```
 
+### Coverage thresholds
+
+Run tests and enforce the project's minimum line, branch, and function
+coverage requirements:
+
+`test-coverage-lines`: 95
+
+`test-coverage-branches`: 95
+
+`test-coverage-functions`: 95
+
+```bash
+npm run test:coverage:check
+```
+
+Commands:
+
+- `npm test` runs the normal test suite.
+- `npm run test:coverage` displays coverage without enforcing thresholds.
+- `npm run test:coverage:check` enforces the minimum coverage requirements.
+- `npm run check` runs syntax checking and threshold-enforced tests.s
+
 ### Storage
 
 This project currently uses an in-memory task store.

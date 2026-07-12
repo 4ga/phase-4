@@ -235,6 +235,21 @@ Run all local quality checks:
 npm run check
 ```
 
+### Coverage thresholds
+
+Run tests and enforce the project's minimum line, branch, and function
+coverage requirements:
+
+`test-coverage-lines`: 95
+
+`test-coverage-branches`: 95
+
+`test-coverage-functions`: 90
+
+```bash
+npm run test:coverage:check
+```
+
 ### Storage
 
 This project currently uses an in-memory book store.
@@ -262,3 +277,7 @@ Current focus:
 - Clear project organization
 
 Advanced backend architecture, authentication, database persistence, and deployment are intentionally saved for later milestones.
+
+```
+
+```
