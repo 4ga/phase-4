@@ -258,8 +258,9 @@ Commands:
 - `npm run format` rewrites files using Prettier.
 - `npm run lint` performs static code analysis.
 - `npm run test:coverage` reports coverage.
-- `npm run test:coverage:check` enforces coverage thresholds.
+- `npm run test:coverage:check` runs tests and enforces coverage thresholds.
 - `npm run check` runs the complete non-mutating quality gate.
+- `npm run check:node` verifies the required Node.js version.
 
 ### Static analysis
 
@@ -289,6 +290,21 @@ Check whether project files follow the configured Prettier format:
 
 ```bash
 npm run format:check
+```
+
+## Requirements
+
+This project uses Node.js 24.14.1.
+
+The required version is recorded in:
+
+- `.nvmrc`
+- `package.json` under `engines.node`
+
+Check the active version:
+
+```bash
+node --version
 ```
 
 ### Learning Focus

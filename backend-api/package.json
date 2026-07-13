@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Phase 4 backend and APIs project",
   "main": "src/server.js",
+  "engines": {
+    "node": "24.14.1"
+  },
   "scripts": {
     "start": "nodemon src/server.js",
     "dev": "nodemon --env-file=.env src/server.js",
@@ -13,7 +16,8 @@
     "lint": "eslint src test scripts eslint.config.js",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
-    "check": "npm run check:syntax && npm run format:check && npm run lint && npm run test:coverage:check"
+    "check:node": "node scripts/checkNodeVersion.js",
+    "check": "npm run check:node && npm run check:syntax && npm run format:check && npm run lint && npm run test:coverage:check"
   },
   "keywords": [],
   "author": "",
