@@ -260,6 +260,7 @@ Commands:
 - `npm run test:coverage` reports coverage.
 - `npm run test:coverage:check` runs tests and enforces coverage thresholds.
 - `npm run check` runs the complete non-mutating quality gate.
+- `npm run audit:prod` audits production dependencies.
 - `npm run check:node` verifies the required Node.js version.
 
 ### Static analysis
@@ -305,6 +306,14 @@ Check the active version:
 
 ```bash
 node --version
+```
+
+### Dependency security
+
+Audit production dependencies for known high or critical vulnerabilities:
+
+```bash
+npm run audit:prod
 ```
 
 ### Learning Focus

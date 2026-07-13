@@ -289,6 +289,14 @@ Check whether project files follow the configured Prettier format:
 npm run format:check
 ```
 
+### Dependency security
+
+Audit production dependencies for known high or critical vulnerabilities:
+
+```bash
+npm run audit:prod
+```
+
 ### Learning Focus
 
 This project is intentionally incremental.
