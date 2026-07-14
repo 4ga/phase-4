@@ -44,3 +44,27 @@ test("seedInitialTasks inserts the starter tasks", () => {
     database.close();
   }
 });
+
+test("seedInitialTasks can run repeatedly without duplicating tasks", () => {
+  const database = openDatabase(":memory:");
+
+  try {
+    initializeDatabase(database);
+
+    seedInitialTasks(database);
+    seedInitialTasks(database);
+
+    const { taskCount } = database
+      .prepare(
+        `
+        SELECT COUNT(*) AS taskCount
+        FROM tasks
+      `,
+      )
+      .get();
+
+    assert.equal(taskCount, 3);
+  } finally {
+    database.close();
+  }
+});

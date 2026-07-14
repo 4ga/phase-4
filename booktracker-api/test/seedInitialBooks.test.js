@@ -99,3 +99,27 @@ test("seedInitialTasks inserts the starter books", () => {
     database.close();
   }
 });
+
+test("seedInitialTasks can run repeatedly without duplicating books", () => {
+  const database = openDatabase(":memory:");
+
+  try {
+    initializeDatabase(database);
+
+    seedInitialBooks(database);
+    seedInitialBooks(database);
+
+    const { bookCount } = database
+      .prepare(
+        `
+        SELECT COUNT(*) AS bookCount
+        FROM books
+      `,
+      )
+      .get();
+
+    assert.equal(bookCount, 7);
+  } finally {
+    database.close();
+  }
+});

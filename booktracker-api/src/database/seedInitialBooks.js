@@ -9,17 +9,23 @@ export const seedInitialBooks = (database) => {
   database.exec("BEGIN;");
 
   try {
-    for (const book of initialBooks) {
-      insertTask.run(
-        book.id,
-        book.title,
-        book.author,
-        book.format,
-        book.genre,
-        book.audience,
-        book.availability,
-        book.publicationYear,
-      );
+    const { bookCount } = database
+      .prepare(`SELECT COUNT(*) AS bookCount FROM books`)
+      .get();
+
+    if (bookCount === 0) {
+      for (const book of initialBooks) {
+        insertTask.run(
+          book.id,
+          book.title,
+          book.author,
+          book.format,
+          book.genre,
+          book.audience,
+          book.availability,
+          book.publicationYear,
+        );
+      }
     }
 
     database.exec("COMMIT;");
