@@ -15,7 +15,7 @@ test("createApplicationDatabase opens and initializes a database", () => {
         `
         SELECT name
         FROM sqlite_master
-        WHERE type = 'table' AND name = 'tasks'
+        WHERE type = 'table' AND name = 'books'
       `,
       )
       .get();
@@ -23,7 +23,7 @@ test("createApplicationDatabase opens and initializes a database", () => {
     assert.deepEqual(
       { ...table },
       {
-        name: "tasks",
+        name: "books",
       },
     );
   } finally {
@@ -36,7 +36,7 @@ test("createApplicationDatabase creates a file-backed database and its parent di
     join(tmpdir(), "backend-api-database-"),
   );
 
-  const databasePath = join(temporaryDirectory, "nested", "tasks.sqlite");
+  const databasePath = join(temporaryDirectory, "nested", "books.sqlite");
 
   let database;
 
@@ -50,7 +50,7 @@ test("createApplicationDatabase creates a file-backed database and its parent di
         `
         SELECT name
         FROM sqlite_master
-        WHERE type = 'table' AND name = 'tasks'
+        WHERE type = 'table' AND name = 'books'
       `,
       )
       .get();
@@ -58,7 +58,7 @@ test("createApplicationDatabase creates a file-backed database and its parent di
     assert.deepEqual(
       { ...table },
       {
-        name: "tasks",
+        name: "books",
       },
     );
   } finally {
