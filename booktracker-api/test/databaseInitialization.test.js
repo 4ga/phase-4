@@ -159,3 +159,36 @@ test("books default publication year to 1900", () => {
     database.close();
   }
 });
+
+test("initializeDatabase can run repeatedly without deleting existing books", () => {
+  const database = openDatabase(":memory:");
+
+  try {
+    initializeDatabase(database);
+    database
+      .prepare(
+        `INSERT INTO books (title, author, format, genre, audience, availability) VALUES (?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        "Test Book",
+        "test author",
+        "ebook",
+        "fiction",
+        "adult",
+        "checked-out",
+      );
+
+    initializeDatabase(database);
+
+    const task = database
+      .prepare(`SELECT id, title, publicationYear FROM books WHERE id = ?`)
+      .get(1);
+
+    assert.deepEqual(
+      { ...task },
+      { id: 1, title: "Test Book", publicationYear: 1900 },
+    );
+  } finally {
+    database.close();
+  }
+});

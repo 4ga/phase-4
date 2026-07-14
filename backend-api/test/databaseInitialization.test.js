@@ -118,3 +118,27 @@ test("tasks reject invalid completed values", () => {
     database.close();
   }
 });
+
+test("initializeDatabase can run repeatedly without deleting existing tasks", () => {
+  const database = openDatabase(":memory:");
+
+  try {
+    initializeDatabase(database);
+    database
+      .prepare(`INSERT INTO tasks (title) VALUES (?)`)
+      .run("Keep this task");
+
+    initializeDatabase(database);
+
+    const task = database
+      .prepare(`SELECT id, title, completed FROM tasks WHERE id = ?`)
+      .get(1);
+
+    assert.deepEqual(
+      { ...task },
+      { id: 1, title: "Keep this task", completed: 0 },
+    );
+  } finally {
+    database.close();
+  }
+});
