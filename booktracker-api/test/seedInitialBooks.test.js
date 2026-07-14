@@ -123,3 +123,56 @@ test("seedInitialTasks can run repeatedly without duplicating books", () => {
     database.close();
   }
 });
+
+test("seedInitialTasks preserves a non-empty books table", () => {
+  const database = openDatabase(":memory:");
+
+  try {
+    initializeDatabase(database);
+
+    database
+      .prepare(
+        `
+        INSERT INTO books (title, author, publicationYear, format, genre, audience, availability)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `,
+      )
+      .run(
+        "Databases",
+        "Test Author",
+        2009,
+        "ebook",
+        "science",
+        "adult",
+        "available",
+      );
+
+    seedInitialBooks(database);
+
+    const books = database
+      .prepare(
+        `
+        SELECT id, title, author, publicationYear, format, genre, audience, availability
+        FROM books
+        ORDER BY id
+      `,
+      )
+      .all()
+      .map((book) => ({ ...book }));
+
+    assert.deepEqual(books, [
+      {
+        id: 1,
+        title: "Databases",
+        author: "Test Author",
+        publicationYear: 2009,
+        format: "ebook",
+        genre: "science",
+        audience: "adult",
+        availability: "available",
+      },
+    ]);
+  } finally {
+    database.close();
+  }
+});
