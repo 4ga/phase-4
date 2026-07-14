@@ -26,3 +26,49 @@ test("initializeDatabase creates the tasks table", () => {
     database.close();
   }
 });
+
+test("initializeDatabase creates the expected tasks columns", () => {
+  const database = openDatabase(":memory:");
+
+  try {
+    initializeDatabase(database);
+
+    const columns = database.prepare("PRAGMA table_info(tasks);").all();
+
+    const columnDefinitions = columns.map(
+      ({ name, type, notnull, dflt_value, pk }) => ({
+        name,
+        type,
+        notnull,
+        defaultValue: dflt_value,
+        primaryKey: pk,
+      }),
+    );
+
+    assert.deepEqual(columnDefinitions, [
+      {
+        name: "id",
+        type: "INTEGER",
+        notnull: 0,
+        defaultValue: null,
+        primaryKey: 1,
+      },
+      {
+        name: "title",
+        type: "TEXT",
+        notnull: 1,
+        defaultValue: null,
+        primaryKey: 0,
+      },
+      {
+        name: "completed",
+        type: "INTEGER",
+        notnull: 1,
+        defaultValue: "0",
+        primaryKey: 0,
+      },
+    ]);
+  } finally {
+    database.close();
+  }
+});
