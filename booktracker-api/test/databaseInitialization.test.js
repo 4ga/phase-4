@@ -68,13 +68,6 @@ test("initializeDatabase creates the expected books columns", () => {
         primaryKey: 0,
       },
       {
-        name: "publicationYear",
-        type: "INTEGER",
-        notnull: 1,
-        defaultValue: "1900",
-        primaryKey: 0,
-      },
-      {
         name: "format",
         type: "TEXT",
         notnull: 1,
@@ -102,7 +95,66 @@ test("initializeDatabase creates the expected books columns", () => {
         defaultValue: null,
         primaryKey: 0,
       },
+      {
+        name: "publicationYear",
+        type: "INTEGER",
+        notnull: 1,
+        defaultValue: "1900",
+        primaryKey: 0,
+      },
     ]);
+  } finally {
+    database.close();
+  }
+});
+
+test("books default publication year to 1900", () => {
+  const database = openDatabase(":memory:");
+
+  try {
+    initializeDatabase(database);
+
+    database
+      .prepare(
+        `
+        INSERT INTO books (
+          title,
+          author,
+          format,
+          genre,
+          audience,
+          availability
+        )
+        VALUES (?, ?, ?, ?, ?, ?)
+        `,
+      )
+      .run(
+        "The Great Gatsby",
+        "F. Scott Fitzgerald",
+        "hardcover",
+        "fiction",
+        "adult",
+        "available",
+      );
+
+    const book = database
+      .prepare(
+        `
+        SELECT id, title, publicationYear
+        FROM books
+        WHERE id = ?
+        `,
+      )
+      .get(1);
+
+    assert.deepEqual(
+      { ...book },
+      {
+        id: 1,
+        title: "The Great Gatsby",
+        publicationYear: 1900,
+      },
+    );
   } finally {
     database.close();
   }

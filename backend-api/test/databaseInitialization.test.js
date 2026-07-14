@@ -72,3 +72,30 @@ test("initializeDatabase creates the expected tasks columns", () => {
     database.close();
   }
 });
+
+test("tasks default completed to zero", () => {
+  const database = openDatabase(":memory:");
+
+  try {
+    initializeDatabase(database);
+
+    database
+      .prepare(`INSERT INTO tasks (title) VALUES (?)`)
+      .run("Learn SQLite defaults");
+
+    const task = database
+      .prepare(`SELECT id, title, completed FROM tasks WHERE id = ?`)
+      .get(1);
+
+    assert.deepEqual(
+      { ...task },
+      {
+        id: 1,
+        title: "Learn SQLite defaults",
+        completed: 0,
+      },
+    );
+  } finally {
+    database.close();
+  }
+});
