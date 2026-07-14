@@ -2,5 +2,8 @@
 .env
 node_modules
 
-data/*.sqlite
-data/*.sqlite-*
+backend-api/data/*.sqlite
+backend-api/data/*.sqlite-*
+
+booktracker-api/data/*.sqlite
+booktracker-api/data/*.sqlite-*
