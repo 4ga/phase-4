@@ -99,3 +99,22 @@ test("tasks default completed to zero", () => {
     database.close();
   }
 });
+
+test("tasks reject invalid completed values", () => {
+  const database = openDatabase(":memory:");
+
+  try {
+    initializeDatabase(database);
+
+    const insertTask = database.prepare(`
+      INSERT INTO tasks (title, completed)
+      VALUES (?, ?)
+    `);
+
+    assert.throws(() => {
+      insertTask.run("Invalid completed value", 2);
+    });
+  } finally {
+    database.close();
+  }
+});
