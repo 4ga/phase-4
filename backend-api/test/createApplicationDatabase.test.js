@@ -70,3 +70,40 @@ test("createApplicationDatabase creates a file-backed database and its parent di
     });
   }
 });
+
+test("createApplicationDatabase seeds a new database with starter tasks", () => {
+  const database = createApplicationDatabase(":memory:");
+
+  try {
+    const tasks = database
+      .prepare(
+        `
+        SELECT id, title, completed
+        FROM tasks
+        ORDER BY id
+      `,
+      )
+      .all()
+      .map((task) => ({ ...task }));
+
+    assert.deepEqual(tasks, [
+      {
+        id: 1,
+        title: "Learn HTTP basics",
+        completed: 0,
+      },
+      {
+        id: 2,
+        title: "Practice Express routes",
+        completed: 0,
+      },
+      {
+        id: 3,
+        title: "Connect backend concepts to frontend apps",
+        completed: 1,
+      },
+    ]);
+  } finally {
+    database.close();
+  }
+});

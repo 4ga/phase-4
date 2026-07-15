@@ -3,6 +3,7 @@ import { dirname } from "node:path";
 
 import { openDatabase } from "./connection.js";
 import { initializeDatabase } from "./initializeDatabase.js";
+import { seedInitialBooks } from "./seedInitialBooks.js";
 
 export const createApplicationDatabase = (databasePath) => {
   if (databasePath !== ":memory:") {
@@ -13,6 +14,7 @@ export const createApplicationDatabase = (databasePath) => {
 
   try {
     initializeDatabase(database);
+    seedInitialBooks(database);
 
     return database;
   } catch (error) {
