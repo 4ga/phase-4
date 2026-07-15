@@ -107,3 +107,56 @@ test("createApplicationDatabase seeds a new database with starter tasks", () => 
     database.close();
   }
 });
+
+test("createApplicationDatabase preserves tasks when reopening an existing database", () => {
+  const temporaryDirectory = mkdtempSync(join(tmpdir(), "backend-api-reopen-"));
+
+  const databasePath = join(temporaryDirectory, "tasks.sqlite");
+
+  let database;
+
+  try {
+    database = createApplicationDatabase(databasePath);
+
+    database
+      .prepare(
+        `
+        UPDATE tasks
+        SET title = ?
+        WHERE id = ?
+      `,
+      )
+      .run("Preserved database task", 1);
+
+    database.close();
+    database = undefined;
+
+    database = createApplicationDatabase(databasePath);
+
+    const tasks = database
+      .prepare(
+        `
+        SELECT id, title, completed
+        FROM tasks
+        ORDER BY id
+      `,
+      )
+      .all()
+      .map((task) => ({ ...task }));
+
+    assert.equal(tasks.length, 3);
+
+    assert.deepEqual(tasks[0], {
+      id: 1,
+      title: "Preserved database task",
+      completed: 0,
+    });
+  } finally {
+    database?.close();
+
+    rmSync(temporaryDirectory, {
+      recursive: true,
+      force: true,
+    });
+  }
+});

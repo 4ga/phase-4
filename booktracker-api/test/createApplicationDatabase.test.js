@@ -162,3 +162,61 @@ test("createApplicationDatabase seeds a new database with starter books", () => 
     database.close();
   }
 });
+
+test("createApplicationDatabase preserves books when reopening an existing database", () => {
+  const temporaryDirectory = mkdtempSync(join(tmpdir(), "backend-api-reopen-"));
+
+  const databasePath = join(temporaryDirectory, "books.sqlite");
+
+  let database;
+
+  try {
+    database = createApplicationDatabase(databasePath);
+
+    database
+      .prepare(
+        `
+        UPDATE books
+        SET title = ?
+        WHERE id = ?
+      `,
+      )
+      .run("Preserved database task", 1);
+
+    database.close();
+    database = undefined;
+
+    database = createApplicationDatabase(databasePath);
+
+    const books = database
+      .prepare(
+        `
+        SELECT id, title, author, publicationYear, format, genre, audience, availability
+        FROM books
+        ORDER BY id
+      `,
+      )
+      .all()
+      .map((book) => ({ ...book }));
+
+    assert.equal(books.length, 7);
+
+    assert.deepEqual(books[0], {
+      id: 1,
+      title: "Preserved database task",
+      author: "F. Scott Fitzgerald",
+      publicationYear: 1925,
+      format: "hardcover",
+      genre: "fiction",
+      audience: "adult",
+      availability: "available",
+    });
+  } finally {
+    database?.close();
+
+    rmSync(temporaryDirectory, {
+      recursive: true,
+      force: true,
+    });
+  }
+});
