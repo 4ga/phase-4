@@ -11,7 +11,19 @@ export const createTaskRepository = (database) => {
     ORDER BY id
   `);
 
+  const selectTaskById = database.prepare(`
+    SELECT id, title, completed
+    FROM tasks
+    WHERE id = ?
+  `);
+
   return {
     getAllTasks: () => selectAllTasks.all().map(mapTaskRow),
+
+    getTaskById: (taskId) => {
+      const task = selectTaskById.get(taskId);
+
+      return task ? mapTaskRow(task) : undefined;
+    },
   };
 };

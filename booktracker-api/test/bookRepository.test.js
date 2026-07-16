@@ -86,3 +86,36 @@ test("getAllBooks returns all database books as application book objects", () =>
     database.close();
   }
 });
+
+test("getBookById returns the requested database book", () => {
+  const database = createApplicationDatabase(":memory:");
+
+  try {
+    const bookRepository = createBookRepository(database);
+
+    assert.deepEqual(bookRepository.getBookById(3), {
+      id: 3,
+      title: "The Hobbit",
+      author: "J.R.R. Tolkien",
+      publicationYear: 1937,
+      format: "ebook",
+      genre: "sci-fi",
+      audience: "young-adult",
+      availability: "available",
+    });
+  } finally {
+    database.close();
+  }
+});
+
+test("getBookById returns undefined when the book is missing", () => {
+  const database = createApplicationDatabase(":memory:");
+
+  try {
+    const bookRepository = createBookRepository(database);
+
+    assert.equal(bookRepository.getBookById(999), undefined);
+  } finally {
+    database.close();
+  }
+});

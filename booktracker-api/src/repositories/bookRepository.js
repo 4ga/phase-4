@@ -25,7 +25,18 @@ export const createBookRepository = (database) => {
     ORDER BY id
   `);
 
+  const selectBookById = database.prepare(`
+    SELECT id, title, author, format, genre, audience, availability, publicationYear
+    FROM books
+    WHERE id = ?
+    `);
+
   return {
     getAllBooks: () => selectAllBooks.all().map(mapBookRow),
+    getBookById: (bookId) => {
+      const book = selectBookById.get(bookId);
+
+      return book ? mapBookRow(book) : undefined;
+    },
   };
 };
