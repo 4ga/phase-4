@@ -59,3 +59,25 @@ test("getTaskById returns undefined when the task is missing", () => {
     database.close();
   }
 });
+
+test("createTaskRecord creates and returns a database task", () => {
+  const database = createApplicationDatabase(":memory:");
+
+  try {
+    const taskRepository = createTaskRepository(database);
+
+    const createdTask = taskRepository.createTaskRecord({
+      title: "Create a task with SQLite",
+    });
+
+    assert.deepEqual(createdTask, {
+      id: 4,
+      title: "Create a task with SQLite",
+      completed: false,
+    });
+
+    assert.deepEqual(taskRepository.getTaskById(4), createdTask);
+  } finally {
+    database.close();
+  }
+});

@@ -119,3 +119,36 @@ test("getBookById returns undefined when the book is missing", () => {
     database.close();
   }
 });
+
+test("createBookRecord creates and returns a database book", () => {
+  const database = createApplicationDatabase(":memory:");
+
+  try {
+    const bookRepository = createBookRepository(database);
+
+    const createdBook = bookRepository.createBookRecord({
+      title: "Clean Architecture",
+      author: "Robert C. Martin",
+      format: "hardcopy",
+      genre: "science",
+      audience: "young-adult",
+      availability: "available",
+      publicationYear: 2017,
+    });
+
+    assert.deepEqual(createdBook, {
+      id: 8,
+      title: "Clean Architecture",
+      author: "Robert C. Martin",
+      format: "hardcopy",
+      genre: "science",
+      audience: "young-adult",
+      availability: "available",
+      publicationYear: 2017,
+    });
+
+    assert.deepEqual(bookRepository.getBookById(8), createdBook);
+  } finally {
+    database.close();
+  }
+});

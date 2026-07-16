@@ -31,12 +31,38 @@ export const createBookRepository = (database) => {
     WHERE id = ?
     `);
 
+  const insertBook = database.prepare(`
+    INSERT INTO books (title, author, format, genre, audience, availability, publicationYear)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    RETURNING id, title, author, format, genre, audience, availability, publicationYear
+    `);
+
   return {
     getAllBooks: () => selectAllBooks.all().map(mapBookRow),
     getBookById: (bookId) => {
       const book = selectBookById.get(bookId);
 
       return book ? mapBookRow(book) : undefined;
+    },
+    createBookRecord: ({
+      title,
+      author,
+      format,
+      genre,
+      audience,
+      availability,
+      publicationYear,
+    }) => {
+      const book = insertBook.get(
+        title,
+        author,
+        format,
+        genre,
+        audience,
+        availability,
+        publicationYear,
+      );
+      return mapBookRow(book);
     },
   };
 };

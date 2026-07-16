@@ -17,6 +17,12 @@ export const createTaskRepository = (database) => {
     WHERE id = ?
   `);
 
+  const insertTask = database.prepare(`
+    INSERT INTO tasks (title)
+    VALUES (?)
+    RETURNING id, title, completed
+    `);
+
   return {
     getAllTasks: () => selectAllTasks.all().map(mapTaskRow),
 
@@ -24,6 +30,10 @@ export const createTaskRepository = (database) => {
       const task = selectTaskById.get(taskId);
 
       return task ? mapTaskRow(task) : undefined;
+    },
+    createTaskRecord: ({ title }) => {
+      const task = insertTask.get(title);
+      return mapTaskRow(task);
     },
   };
 };
