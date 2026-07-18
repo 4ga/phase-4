@@ -23,6 +23,13 @@ export const createTaskRepository = (database) => {
     RETURNING id, title, completed
     `);
 
+  const updateTaskTitle = database.prepare(`
+    UPDATE tasks
+    SET title = ?
+    WHERE id = ?
+    RETURNING id, title, completed
+`);
+
   return {
     getAllTasks: () => selectAllTasks.all().map(mapTaskRow),
 
@@ -34,6 +41,10 @@ export const createTaskRepository = (database) => {
     createTaskRecord: ({ title }) => {
       const task = insertTask.get(title);
       return mapTaskRow(task);
+    },
+    updateTaskRecord: (taskId, updates) => {
+      const task = updateTaskTitle.get(updates.title, taskId);
+      return task ? mapTaskRow(task) : undefined;
     },
   };
 };

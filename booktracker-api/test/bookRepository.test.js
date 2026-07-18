@@ -152,3 +152,47 @@ test("createBookRecord creates and returns a database book", () => {
     database.close();
   }
 });
+
+test("updateBookRecord updates and returns a book title", () => {
+  const database = createApplicationDatabase(":memory:");
+
+  try {
+    const bookRepository = createBookRepository(database);
+
+    const updatedBook = bookRepository.updateBookRecord(1, {
+      title: "Updated through SQLite",
+    });
+
+    assert.deepEqual(updatedBook, {
+      id: 1,
+      title: "Updated through SQLite",
+      author: "F. Scott Fitzgerald",
+      format: "hardcover",
+      genre: "fiction",
+      audience: "adult",
+      availability: "available",
+      publicationYear: 1925,
+    });
+
+    assert.deepEqual(bookRepository.getBookById(1), updatedBook);
+  } finally {
+    database.close();
+  }
+});
+
+test("updateBookRecord returns undefined when the book is missing", () => {
+  const database = createApplicationDatabase(":memory:");
+
+  try {
+    const bookRepository = createBookRepository(database);
+
+    assert.equal(
+      bookRepository.updateBookRecord(999, {
+        title: "Missing book",
+      }),
+      undefined,
+    );
+  } finally {
+    database.close();
+  }
+});

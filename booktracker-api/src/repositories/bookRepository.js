@@ -37,11 +37,21 @@ export const createBookRepository = (database) => {
     RETURNING id, title, author, format, genre, audience, availability, publicationYear
     `);
 
+  const updateBookTitle = database.prepare(`
+  UPDATE books
+  SET title = ?
+  WHERE id = ?
+  RETURNING id, title, author, format, genre, audience, availability, publicationYear
+`);
+
   return {
     getAllBooks: () => selectAllBooks.all().map(mapBookRow),
     getBookById: (bookId) => {
       const book = selectBookById.get(bookId);
-
+      return book ? mapBookRow(book) : undefined;
+    },
+    updateBookRecord: (bookId, updates) => {
+      const book = updateBookTitle.get(updates.title, bookId);
       return book ? mapBookRow(book) : undefined;
     },
     createBookRecord: ({

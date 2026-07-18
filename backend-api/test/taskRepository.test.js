@@ -81,3 +81,42 @@ test("createTaskRecord creates and returns a database task", () => {
     database.close();
   }
 });
+
+test("updateTaskRecord updates and returns a task title", () => {
+  const database = createApplicationDatabase(":memory:");
+
+  try {
+    const taskRepository = createTaskRepository(database);
+
+    const updatedTask = taskRepository.updateTaskRecord(1, {
+      title: "Updated through SQLite",
+    });
+
+    assert.deepEqual(updatedTask, {
+      id: 1,
+      title: "Updated through SQLite",
+      completed: false,
+    });
+
+    assert.deepEqual(taskRepository.getTaskById(1), updatedTask);
+  } finally {
+    database.close();
+  }
+});
+
+test("updateTaskRecord returns undefined when the task is missing", () => {
+  const database = createApplicationDatabase(":memory:");
+
+  try {
+    const taskRepository = createTaskRepository(database);
+
+    assert.equal(
+      taskRepository.updateTaskRecord(999, {
+        title: "Missing task",
+      }),
+      undefined,
+    );
+  } finally {
+    database.close();
+  }
+});
